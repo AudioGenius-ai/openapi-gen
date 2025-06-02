@@ -53,7 +53,12 @@ export class CodeGenerator {
     // Generate React Query hooks (if enabled)
     if (config.generateHooks !== false) {
       console.log('🪝 Generating React Query hooks...');
-      await this.generateHooks(spec.operations, spec.tags, config.outputDir);
+      await this.generateHooks(
+        spec.operations,
+        spec.tags,
+        config.outputDir,
+        config.baseUrl
+      );
     }
     
     // Generate index files
@@ -134,9 +139,10 @@ export class CodeGenerator {
   }
 
   private async generateHooks(
-    operations: any[], 
-    tags: string[], 
-    outputDir: string
+    operations: any[],
+    tags: string[],
+    outputDir: string,
+    baseUrl?: string
   ): Promise<void> {
     const hooksDir = path.join(outputDir, 'hooks');
 
@@ -153,10 +159,11 @@ export class CodeGenerator {
       });
 
       const hooksFile = this.hooksGenerator.generateHooksForTag(
-        tagOperations, 
-        tag, 
+        tagOperations,
+        tag,
         className,
-        methods
+        methods,
+        baseUrl
       );
 
       const filePath = path.join(hooksDir, `${tag}.ts`);

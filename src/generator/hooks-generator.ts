@@ -16,10 +16,11 @@ export interface GeneratedHooksFile {
 
 export class HooksGenerator {
   generateHooksForTag(
-    operations: ParsedOperation[], 
-    tag: string, 
+    operations: ParsedOperation[],
+    tag: string,
     className: string,
-    methods: GeneratedMethod[]
+    methods: GeneratedMethod[],
+    baseUrl?: string
   ): GeneratedHooksFile {
     const hooks = operations.map((operation, index) => 
       this.generateHook(operation, className, methods[index])
@@ -32,9 +33,14 @@ export class HooksGenerator {
     const baseName = className.replace('Api', '');
     const apiInstanceName = this.toCamelCase(baseName) + 'Api';
 
+    const baseUrlArg =
+      baseUrl !== undefined
+        ? JSON.stringify(baseUrl)
+        : "process.env.REACT_APP_API_BASE_URL || ''";
+
     const content = `${imports}
 
-const ${apiInstanceName} = new ${className}(process.env.REACT_APP_API_BASE_URL || '');
+const ${apiInstanceName} = new ${className}(${baseUrlArg});
 
 ${hookContents}
 `;

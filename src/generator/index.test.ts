@@ -247,7 +247,13 @@ describe('CodeGenerator', () => {
   describe('generateEndpoints', () => {
     it('should generate endpoint classes and index', async () => {
       const operations = [
-        { operationId: 'getUsers', method: 'GET', path: '/users', tags: ['users'] }
+        {
+          operationId: 'getUsers',
+          method: 'GET',
+          path: '/users',
+          tags: ['users'],
+          responses: { '200': { description: 'ok' } }
+        }
       ]
       const tags = ['users']
 
@@ -274,7 +280,13 @@ describe('CodeGenerator', () => {
   describe('generateHooks', () => {
     it('should generate hooks files and index', async () => {
       const operations = [
-        { operationId: 'getUsers', method: 'GET', path: '/users', tags: ['users'] }
+        {
+          operationId: 'getUsers',
+          method: 'GET',
+          path: '/users',
+          tags: ['users'],
+          responses: { '200': { description: 'ok' } }
+        }
       ]
       const tags = ['users']
 
@@ -293,7 +305,20 @@ describe('CodeGenerator', () => {
       vi.spyOn(generator['hooksGenerator'], 'generateQueryKeys').mockReturnValue('export const useGetUsersKey = () => [];')
       vi.spyOn(generator['hooksGenerator'], 'generateIndexFile').mockReturnValue('export * from "./users";')
 
-      await generator['generateHooks'](operations, tags, '/output')
+      await generator['generateHooks'](
+        operations,
+        tags,
+        '/output',
+        'https://api.test.com'
+      )
+
+      expect(generator['hooksGenerator'].generateHooksForTag).toHaveBeenCalledWith(
+        operations,
+        'users',
+        'UsersApi',
+        expect.anything(),
+        'https://api.test.com'
+      )
 
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         path.join('/output', 'hooks', 'users.ts'),

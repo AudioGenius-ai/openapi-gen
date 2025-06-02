@@ -184,7 +184,8 @@ Ready-to-use hooks for your React components:
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { UsersApi } from '../endpoints/UsersApi';
 
-const usersApi = new UsersApi(process.env.REACT_APP_API_BASE_URL || '');
+// Base URL provided via --base-url or environment variable
+const usersApi = new UsersApi(process.env.REACT_APP_API_BASE_URL || 'https://api.example.com/v1');
 
 export function useGetUsers(page?: number, limit?: number) {
   return useQuery({

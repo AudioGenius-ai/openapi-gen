@@ -341,6 +341,7 @@ describe("CodeGenerator", () => {
           method: "GET",
           path: "/users",
           tags: ["users"],
+          responses: { "200": { description: "Success" } },
         },
       ];
       const tags = ["users"];

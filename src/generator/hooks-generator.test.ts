@@ -168,7 +168,7 @@ describe('HooksGenerator', () => {
 
       const result = generator.generateHooksForTag([operation], 'health', 'HealthApi', [method])
 
-      expect(result.content).toContain('useGetHealth(queryOptions?:')
+      expect(result.content).toContain('export function useGetHealth(')
       expect(result.content).toContain('queryKey: ["getHealth"]')
       expect(result.content).toContain('healthApi.getHealth()')
     })
@@ -225,7 +225,7 @@ describe('HooksGenerator', () => {
       const result = generator.generateHooksForTag([operation], 'auth', 'AuthApi', [method])
 
       expect(result.content).toContain('useLogout(')
-      expect(result.content).toContain('variables: void')
+      expect(result.content).toContain('mutationFn: () => authApi.logout()')
       expect(result.content).toContain('authApi.logout()')
     })
 

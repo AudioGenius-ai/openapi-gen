@@ -274,7 +274,13 @@ describe('CodeGenerator', () => {
   describe('generateHooks', () => {
     it('should generate hooks files and index', async () => {
       const operations = [
-        { operationId: 'getUsers', method: 'GET', path: '/users', tags: ['users'] }
+        { 
+          operationId: 'getUsers', 
+          method: 'GET', 
+          path: '/users', 
+          tags: ['users'],
+          responses: { '200': { description: 'Success' } }
+        }
       ]
       const tags = ['users']
 
@@ -284,6 +290,14 @@ describe('CodeGenerator', () => {
         className: 'UsersApi',
         content: '',
         operations: []
+      })
+      vi.spyOn(generator['endpointGenerator'], 'generateMethod').mockReturnValue({
+        name: 'getUsers',
+        parameters: [],
+        returnType: 'Promise<void>',
+        httpMethod: 'GET',
+        path: '/users',
+        responseSchema: 'z.unknown()'
       })
       vi.spyOn(generator['hooksGenerator'], 'generateHooksForTag').mockReturnValue({
         tag: 'users',

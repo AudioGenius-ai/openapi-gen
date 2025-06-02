@@ -20,6 +20,7 @@ export class HooksGenerator {
     tag: string,
     className: string,
     methods: GeneratedMethod[],
+    baseUrl?: string
   ): GeneratedHooksFile {
     const hooks = operations.map((operation, index) =>
       this.generateHook(operation, className, methods[index]),
@@ -28,9 +29,14 @@ export class HooksGenerator {
     const imports = this.generateImports(className, hooks);
     const hookContents = hooks.map((hook) => hook.content).join("\n\n");
 
+    const baseUrlArg =
+      baseUrl !== undefined
+        ? JSON.stringify(baseUrl)
+        : "process.env.REACT_APP_API_BASE_URL || ''";
+
     const content = `${imports}
 
-const apiSDK = new ApiSDK(process.env.REACT_APP_API_BASE_URL || '');
+const apiSDK = new ApiSDK(${baseUrlArg});
 
 ${hookContents}
 `;

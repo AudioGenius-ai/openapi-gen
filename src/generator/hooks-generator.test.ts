@@ -86,6 +86,40 @@ describe("HooksGenerator", () => {
       expect(result.content).toContain("export function useCreateUser(");
       expect(result.content).toContain("useMutation({");
     });
+
+    it("should inject provided baseUrl into api instance", () => {
+      const operations: ParsedOperation[] = [
+        {
+          operationId: "getUsers",
+          method: "GET",
+          path: "/users",
+          responses: { "200": { description: "Success" } },
+        },
+      ];
+
+      const methods: GeneratedMethod[] = [
+        {
+          name: "getUsers",
+          parameters: [],
+          returnType: "Promise<User[]>",
+          httpMethod: "GET",
+          path: "/users",
+          responseSchema: "UserArraySchema",
+        },
+      ];
+
+      const result = generator.generateHooksForTag(
+        operations,
+        "users",
+        "UsersApi",
+        methods,
+        "https://api.test.com"
+      );
+
+      expect(result.content).toContain(
+        'const apiSDK = new ApiSDK("https://api.test.com");'
+      );
+    });
   });
 
   describe("query hook generation", () => {

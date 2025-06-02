@@ -235,19 +235,24 @@ ${hookContents}
     // Collect all types used in hooks (excluding primitive types)
     const types = new Set<string>();
     hooks.forEach(hook => {
-      // Extract types from the hook content
-      const returnTypeMatches = hook.content.match(/UseQueryOptions<([^,>]+)/g);
-      if (returnTypeMatches) {
-        returnTypeMatches.forEach(match => {
-          const type = match.replace('UseQueryOptions<', '');
-          // Only import non-primitive types and exclude 'unknown', 'Error'
-          if (type && 
-              !['unknown', 'string', 'number', 'boolean', 'void', 'Error', 'any'].includes(type) &&
-              !type.includes('[]') && 
-              !type.startsWith('z.')) {
-            types.add(type);
-          }
-        });
+      // Extract return types from both query and mutation hooks
+      const regex = /(UseQueryOptions|UseMutationOptions)<([^,>]+)/g;
+      let match: RegExpExecArray | null;
+      while ((match = regex.exec(hook.content)) !== null) {
+        let type = match[2].trim();
+
+        if (type.endsWith('[]')) {
+          // Include the element type for array return types
+          type = type.slice(0, -2);
+        }
+
+        if (
+          type &&
+          !['unknown', 'string', 'number', 'boolean', 'void', 'Error', 'any'].includes(type) &&
+          !type.startsWith('z.')
+        ) {
+          types.add(type);
+        }
       }
     });
 

@@ -38,6 +38,27 @@ describe('HooksGenerator', () => {
       expect(result.content).toContain('const usersApi = new UsersApi')
     })
 
+    it('should import element types for array return types', () => {
+      const operations: ParsedOperation[] = [{
+        operationId: 'getUsers',
+        method: 'GET',
+        path: '/users',
+        responses: { '200': { description: 'Success' } }
+      }]
+
+      const methods: GeneratedMethod[] = [{
+        name: 'getUsers',
+        parameters: [],
+        returnType: 'Promise<User[]>',
+        httpMethod: 'GET',
+        path: '/users',
+        responseSchema: 'UserArraySchema'
+      }]
+
+      const result = generator.generateHooksForTag(operations, 'users', 'UsersApi', methods)
+      expect(result.content).toContain('import type { User } from "../models"')
+    })
+
     it('should generate hooks file for mutation operations', () => {
       const operations: ParsedOperation[] = [{
         operationId: 'createUser',

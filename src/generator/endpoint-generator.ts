@@ -29,7 +29,12 @@ export class EndpointGenerator {
 
   generateEndpointClasses(operations: ParsedOperation[], tag: string): GeneratedEndpoint {
     const className = this.parser.generateClassName(tag);
-    const tagOperations = operations.filter(op => op.tags?.includes(tag) || !op.tags?.length);
+    const tagOperations = operations.filter(op => {
+      if (!op.tags || op.tags.length === 0) {
+        return tag === 'default';
+      }
+      return op.tags.includes(tag);
+    });
     
     const methods = tagOperations.map(operation => this.generateMethod(operation));
     const imports = this.generateImports(methods);

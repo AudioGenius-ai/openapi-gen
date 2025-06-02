@@ -73,6 +73,7 @@ openapi-gen generate [options]
 ```
 
 **Options:**
+
 - `-i, --input <path>` - Path to OpenAPI spec file (JSON/YAML) or URL (required)
 - `-o, --output <dir>` - Output directory for generated code (default: "./generated")
 - `--no-hooks` - Skip generating React Query hooks
@@ -102,6 +103,7 @@ openapi-gen init [options]
 ```
 
 **Options:**
+
 - `-d, --dir <directory>` - Directory to initialize (default: ".")
 
 ## Generated Code Structure
@@ -133,13 +135,13 @@ Each OpenAPI schema becomes a Zod schema with TypeScript types:
 
 ```typescript
 // generated/models/User.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const UserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   name: z.string(),
-  role: z.enum(['admin', 'user']),
+  role: z.enum(["admin", "user"]),
   createdAt: z.string().datetime(),
 });
 
@@ -152,20 +154,20 @@ Endpoint classes extend the base client and provide type-safe methods:
 
 ```typescript
 // generated/endpoints/UsersApi.ts
-import { ApiClient } from '../ApiClient';
-import { UserSchema, User, CreateUserSchema, CreateUser } from '../models';
+import { ApiClient } from "../ApiClient";
+import { UserSchema, User, CreateUserSchema, CreateUser } from "../models";
 
 export class UsersApi extends ApiClient {
   getUsers(page?: number, limit?: number): Promise<User[]> {
-    return this.get('/users', z.array(UserSchema), {
-      queryParams: { page, limit }
+    return this.get("/users", z.array(UserSchema), {
+      queryParams: { page, limit },
     });
   }
 
   createUser(data: CreateUser): Promise<User> {
-    return this.post('/users', UserSchema, {
+    return this.post("/users", UserSchema, {
       body: data,
-      bodySchema: CreateUserSchema
+      bodySchema: CreateUserSchema,
     });
   }
 
@@ -181,22 +183,22 @@ Ready-to-use hooks for your React components:
 
 ```typescript
 // generated/hooks/Users.ts
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { UsersApi } from '../endpoints/UsersApi';
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ApiSDK } from "../ApiSDK";
 
-const usersApi = new UsersApi(process.env.REACT_APP_API_BASE_URL || '');
+const apiSDK = new ApiSDK(process.env.REACT_APP_API_BASE_URL || "");
 
 export function useGetUsers(page?: number, limit?: number) {
   return useQuery({
-    queryKey: ['getUsers', page, limit],
-    queryFn: () => usersApi.getUsers(page, limit),
+    queryKey: ["getUsers", page, limit],
+    queryFn: () => apiSDK.usersApi.getUsers(page, limit),
   });
 }
 
 export function useCreateUser() {
   return useMutation({
     mutationFn: (variables: { email: string; name: string; role?: string }) => {
-      return usersApi.createUser(variables);
+      return apiSDK.usersApi.createUser(variables);
     },
   });
 }
@@ -242,21 +244,21 @@ Ensure your `tsconfig.json` includes the generated code:
 You can extend the generated API client for custom functionality:
 
 ```typescript
-import { UsersApi } from './generated';
+import { UsersApi } from "./generated";
 
 class CustomUsersApi extends UsersApi {
   constructor(baseUrl: string, authToken: string) {
     super({
       baseUrl,
       headers: {
-        'Authorization': `Bearer ${authToken}`,
+        Authorization: `Bearer ${authToken}`,
       },
     });
   }
 
   // Add custom methods
   async getCurrentUser(): Promise<User> {
-    return this.getUserById('me');
+    return this.getUserById("me");
   }
 }
 ```
@@ -286,10 +288,10 @@ The generated client includes comprehensive error handling:
 
 ```typescript
 try {
-  const user = await usersApi.getUserById('123');
+  const user = await apiSDK.usersApi.getUserById("123");
 } catch (error) {
   if (error instanceof Error) {
-    console.error('API Error:', error.message);
+    console.error("API Error:", error.message);
     // Error message includes HTTP status and response details
   }
 }

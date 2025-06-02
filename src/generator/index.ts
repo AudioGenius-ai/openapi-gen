@@ -38,6 +38,13 @@ export class CodeGenerator {
     console.log("📖 Parsing OpenAPI specification...");
     const spec = await this.parseSpec(config.inputPath);
 
+    // Add a default tag if there are untagged operations
+    if (spec.operations.some(op => !op.tags || op.tags.length === 0)) {
+      if (!spec.tags.includes('default')) {
+        spec.tags.push('default');
+      }
+    }
+    
     // Create output directories
     await this.createDirectories(config.outputDir);
 
@@ -168,9 +175,12 @@ export class CodeGenerator {
     const hooksDir = path.join(outputDir, "hooks");
 
     for (const tag of tags) {
-      const tagOperations = operations.filter(
-        (op) => op.tags?.includes(tag) || !op.tags?.length,
-      );
+      const tagOperations = operations.filter(op => {
+        if (!op.tags || op.tags.length === 0) {
+          return tag === 'default';
+        }
+        return op.tags.includes(tag);
+      });
       const className = this.parser.generateClassName(tag);
 
       // Generate the actual endpoint methods info

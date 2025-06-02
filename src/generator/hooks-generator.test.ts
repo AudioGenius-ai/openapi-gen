@@ -145,9 +145,9 @@ describe('HooksGenerator', () => {
         responseSchema: 'z.unknown()'
       }
 
-      const result = generator.generateHooksForTag([operation], 'health', 'HealthApi', [method])
+      const result = generator.generateHooksForTag([operation], 'default', 'HealthApi', [method])
 
-      expect(result.content).toContain('useGetHealth(queryOptions?:')
+      expect(result.content).toContain('useGetHealth(\n  queryOptions?:')
       expect(result.content).toContain('queryKey: ["getHealth"]')
       expect(result.content).toContain('healthApi.getHealth()')
     })
@@ -201,10 +201,10 @@ describe('HooksGenerator', () => {
         responseSchema: 'z.void()'
       }
 
-      const result = generator.generateHooksForTag([operation], 'auth', 'AuthApi', [method])
+      const result = generator.generateHooksForTag([operation], 'default', 'AuthApi', [method])
 
       expect(result.content).toContain('useLogout(')
-      expect(result.content).toContain('variables: void')
+      expect(result.content).toContain('mutationFn: () => authApi.logout()')
       expect(result.content).toContain('authApi.logout()')
     })
 

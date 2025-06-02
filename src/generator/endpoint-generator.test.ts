@@ -40,7 +40,7 @@ describe('EndpointGenerator', () => {
       expect(result.content).toContain('getUser(id: string | number): Promise<User>')
     })
 
-    it('should include operations without tags when no tag specified', () => {
+    it('should group operations without tags under the default tag', () => {
       const operations: ParsedOperation[] = [{
         operationId: 'getHealth',
         method: 'GET',
@@ -48,9 +48,11 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'OK' } }
       }]
 
-      const result = generator.generateEndpointClasses(operations, 'health')
+      const defaultResult = generator.generateEndpointClasses(operations, 'default')
+      const otherResult = generator.generateEndpointClasses(operations, 'health')
 
-      expect(result.operations).toHaveLength(1)
+      expect(defaultResult.operations).toHaveLength(1)
+      expect(otherResult.operations).toHaveLength(0)
     })
   })
 
@@ -72,7 +74,7 @@ describe('EndpointGenerator', () => {
         }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       
       expect(result.content).toContain('getUserById(id: string | number)')
       expect(result.content).toContain('this.get(`/users/${id}`')
@@ -92,7 +94,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       
       expect(result.content).toContain('limit?: number')
       expect(result.content).toContain('queryParams: { limit }')
@@ -114,7 +116,7 @@ describe('EndpointGenerator', () => {
         responses: { '201': { description: 'Created' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       
       expect(result.content).toContain('data: CreateUser')
       expect(result.content).toContain('body: data')
@@ -135,7 +137,7 @@ describe('EndpointGenerator', () => {
         responses: { '204': { description: 'Deleted' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       
       expect(result.content).toContain('xApiKey: string')
       expect(result.content).toContain('"xApiKey": xApiKey')
@@ -151,7 +153,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('getUserProfile(')
     })
 
@@ -162,7 +164,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('postUsersProfileSettings(')
     })
 
@@ -174,7 +176,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('getUserProfile(')
     })
   })
@@ -196,7 +198,7 @@ describe('EndpointGenerator', () => {
         }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('Promise<User>')
       expect(result.content).toContain('UserSchema')
     })
@@ -217,7 +219,7 @@ describe('EndpointGenerator', () => {
         }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('Promise<User>')
     })
 
@@ -230,7 +232,7 @@ describe('EndpointGenerator', () => {
         }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('Promise<unknown>')
       expect(result.content).toContain('z.unknown()')
     })
@@ -249,7 +251,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('search?: string')
     })
 
@@ -265,7 +267,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('limit?: number')
     })
 
@@ -281,7 +283,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('active?: boolean')
     })
 
@@ -297,7 +299,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('tags?: any[]')
     })
 
@@ -313,7 +315,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('custom?: any')
     })
   })
@@ -337,7 +339,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).not.toContain('body:')
     })
 
@@ -348,7 +350,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'health')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('getHealth(): Promise<unknown>')
     })
 
@@ -359,7 +361,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       expect(result.content).toContain('userId: string | number, postId: string | number')
       expect(result.content).toContain('`/users/${userId}/posts/${postId}`')
     })
@@ -371,7 +373,7 @@ describe('EndpointGenerator', () => {
         responses: { '200': { description: 'Success' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       // This tests the case where getRequestBodySchema returns undefined (line 181)
       expect(result.content).not.toContain('bodySchema:')
     })
@@ -395,7 +397,7 @@ describe('EndpointGenerator', () => {
         }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       // This tests the inline schema case (line 192)
       expect(result.content).toContain('z.unknown()')
     })
@@ -418,7 +420,7 @@ describe('EndpointGenerator', () => {
         responses: { '201': { description: 'Created' } }
       }
 
-      const result = generator.generateEndpointClasses([operation], 'users')
+      const result = generator.generateEndpointClasses([operation], 'default')
       // This tests inferTypeFromSchema for unknown type (lines 206-207)
       expect(result.content).toContain('data: unknown')
     })

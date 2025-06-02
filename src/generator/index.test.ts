@@ -247,7 +247,13 @@ describe('CodeGenerator', () => {
   describe('generateEndpoints', () => {
     it('should generate endpoint classes and index', async () => {
       const operations = [
-        { operationId: 'getUsers', method: 'GET', path: '/users', tags: ['users'] }
+        {
+          operationId: 'getUsers',
+          method: 'GET',
+          path: '/users',
+          tags: ['users'],
+          responses: { '200': { description: 'Success' } }
+        }
       ]
       const tags = ['users']
 
@@ -274,7 +280,13 @@ describe('CodeGenerator', () => {
   describe('generateHooks', () => {
     it('should generate hooks files and index', async () => {
       const operations = [
-        { operationId: 'getUsers', method: 'GET', path: '/users', tags: ['users'] }
+        {
+          operationId: 'getUsers',
+          method: 'GET',
+          path: '/users',
+          tags: ['users'],
+          responses: { '200': { description: 'Success' } }
+        }
       ]
       const tags = ['users']
 
@@ -356,6 +368,25 @@ describe('CodeGenerator', () => {
         trailingComma: 'es5',
         tabWidth: 2,
         semi: true,
+      })
+    })
+
+    it('should merge custom prettier options', async () => {
+      const { format } = await import('prettier')
+      vi.mocked(format).mockReturnValue('custom formatted')
+
+      // set user config
+      ;(generator as any).prettierConfig = { semi: false, tabWidth: 4 }
+
+      const result = await generator['formatCode']('code')
+
+      expect(result).toBe('custom formatted')
+      expect(format).toHaveBeenCalledWith('code', {
+        parser: 'typescript',
+        singleQuote: true,
+        trailingComma: 'es5',
+        tabWidth: 4,
+        semi: false,
       })
     })
 

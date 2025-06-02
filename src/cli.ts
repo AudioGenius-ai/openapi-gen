@@ -8,7 +8,7 @@ import * as fs from 'fs-extra';
 const program = new Command();
 
 program
-  .name('query-gen')
+  .name('openapi-gen')
   .description('Custom OpenAPI Code Generator with Zod and React Query Hooks')
   .version('0.0.1');
 

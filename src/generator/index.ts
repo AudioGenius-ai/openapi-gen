@@ -22,6 +22,7 @@ export class CodeGenerator {
   private endpointGenerator: EndpointGenerator;
   private hooksGenerator: HooksGenerator;
   private sdkGenerator: SdkGenerator;
+  private prettierConfig: any = {};
 
   constructor() {
     this.parser = new OpenAPIParser();
@@ -32,6 +33,7 @@ export class CodeGenerator {
   }
 
   async generate(config: GeneratorConfig): Promise<void> {
+    this.prettierConfig = config.prettierConfig || {};
     console.log("🚀 Starting OpenAPI code generation...");
 
     // Parse OpenAPI spec
@@ -246,6 +248,7 @@ ${config.generateHooks !== false ? "export * from './hooks';" : ""}
         trailingComma: "es5",
         tabWidth: 2,
         semi: true,
+        ...this.prettierConfig,
       });
     } catch (error) {
       console.warn("⚠️  Failed to format code, using unformatted version");

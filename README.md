@@ -297,6 +297,26 @@ try {
 }
 ```
 
+### Custom Formatting
+
+When using the generator programmatically, you can provide a custom
+Prettier configuration via the `prettierConfig` option of `GeneratorConfig`.
+This configuration is merged with the generator's defaults and applied to all
+generated files.
+
+```typescript
+const generator = new CodeGenerator();
+
+await generator.generate({
+  inputPath: 'openapi.json',
+  outputDir: './src/api',
+  prettierConfig: {
+    semi: false,
+    singleQuote: false,
+  },
+});
+```
+
 ## OpenAPI Support
 
 This generator supports OpenAPI 3.0+ specifications and handles:

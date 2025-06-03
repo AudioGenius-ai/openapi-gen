@@ -219,7 +219,11 @@ program
 
       // Create package.json scripts
       const packagePath = path.join(targetDir, 'package.json');
-      let packageJson: any = {};
+      interface PackageJson {
+        scripts?: Record<string, string>;
+        [key: string]: unknown;
+      }
+      let packageJson: PackageJson = {};
       
       if (await fs.pathExists(packagePath)) {
         packageJson = await fs.readJSON(packagePath);

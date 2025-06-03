@@ -300,10 +300,26 @@ describe('EndpointGenerator', () => {
       }
 
       const result = generator.generateEndpointClasses([operation], 'default')
-      expect(result.content).toContain('tags?: any[]')
+      expect(result.content).toContain('tags?: unknown[]')
     })
 
-    it('should default to any for unknown parameter types', () => {
+    it('should handle typed array parameters', () => {
+      const operation: ParsedOperation = {
+        method: 'GET',
+        path: '/users',
+        parameters: [{
+          name: 'tags',
+          in: 'query',
+          schema: { type: 'array', items: { type: 'string' } }
+        }],
+        responses: { '200': { description: 'Success' } }
+      }
+
+      const result = generator.generateEndpointClasses([operation], 'default')
+      expect(result.content).toContain('tags?: string[]')
+    })
+
+    it('should default to unknown for unknown parameter types', () => {
       const operation: ParsedOperation = {
         method: 'GET',
         path: '/users',
@@ -316,7 +332,7 @@ describe('EndpointGenerator', () => {
       }
 
       const result = generator.generateEndpointClasses([operation], 'default')
-      expect(result.content).toContain('custom?: any')
+      expect(result.content).toContain('custom?: unknown')
     })
   })
 
@@ -378,7 +394,7 @@ describe('EndpointGenerator', () => {
       expect(result.content).not.toContain('bodySchema:')
     })
 
-    it('should handle inline schemas returning z.unknown()', () => {
+    it('should handle inline object schemas', () => {
       const operation: ParsedOperation = {
         method: 'GET',
         path: '/users',
@@ -398,8 +414,8 @@ describe('EndpointGenerator', () => {
       }
 
       const result = generator.generateEndpointClasses([operation], 'default')
-      // This tests the inline schema case (line 192)
-      expect(result.content).toContain('z.unknown()')
+      expect(result.content).toContain('z.object')
+      expect(result.content).toContain('id: z.string()')
     })
 
     it('should handle type inference for unknown schemas', () => {

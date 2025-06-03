@@ -22,9 +22,9 @@ export class ApiClient {
     path: string,
     responseSchema: Schema,
     options: {
-      body?: any;
+      body?: unknown;
       bodySchema?: z.ZodTypeAny;
-      queryParams?: Record<string, any>;
+      queryParams?: Record<string, unknown>;
       headers?: Record<string, string>;
     } = {}
   ): Promise<z.infer<Schema>> {
@@ -99,7 +99,7 @@ export class ApiClient {
     path: string,
     responseSchema: Schema,
     options: {
-      queryParams?: Record<string, any>;
+      queryParams?: Record<string, unknown>;
       headers?: Record<string, string>;
     } = {}
   ): Promise<z.infer<Schema>> {
@@ -110,9 +110,9 @@ export class ApiClient {
     path: string,
     responseSchema: Schema,
     options: {
-      body?: any;
+      body?: unknown;
       bodySchema?: z.ZodTypeAny;
-      queryParams?: Record<string, any>;
+      queryParams?: Record<string, unknown>;
       headers?: Record<string, string>;
     } = {}
   ): Promise<z.infer<Schema>> {
@@ -123,9 +123,9 @@ export class ApiClient {
     path: string,
     responseSchema: Schema,
     options: {
-      body?: any;
+      body?: unknown;
       bodySchema?: z.ZodTypeAny;
-      queryParams?: Record<string, any>;
+      queryParams?: Record<string, unknown>;
       headers?: Record<string, string>;
     } = {}
   ): Promise<z.infer<Schema>> {
@@ -136,9 +136,9 @@ export class ApiClient {
     path: string,
     responseSchema: Schema,
     options: {
-      body?: any;
+      body?: unknown;
       bodySchema?: z.ZodTypeAny;
-      queryParams?: Record<string, any>;
+      queryParams?: Record<string, unknown>;
       headers?: Record<string, string>;
     } = {}
   ): Promise<z.infer<Schema>> {
@@ -149,7 +149,7 @@ export class ApiClient {
     path: string,
     responseSchema: Schema,
     options: {
-      queryParams?: Record<string, any>;
+      queryParams?: Record<string, unknown>;
       headers?: Record<string, string>;
     } = {}
   ): Promise<z.infer<Schema>> {

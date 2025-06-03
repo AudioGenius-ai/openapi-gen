@@ -147,22 +147,13 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
     return [...bracketParams, ...colonParams];
   }
 
-  private getParameterType(schema: any): string {
-    if (!schema) return 'any';
-    
-    switch (schema.type) {
-      case 'string':
-        return 'string';
-      case 'number':
-      case 'integer':
-        return 'number';
-      case 'boolean':
-        return 'boolean';
-      case 'array':
-        return 'any[]';
-      default:
-        return 'any';
-    }
+  private getParameterType(
+    schema?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
+  ): string {
+    if (!schema) return 'unknown';
+
+    const zodSchema = this.getSchemaReference(schema);
+    return this.inferTypeFromSchema(zodSchema);
   }
 
   private getResponseSchema(operation: ParsedOperation): string {
@@ -200,14 +191,16 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
     return undefined;
   }
 
-  private getSchemaReference(schema: any): string {
-    if (schema.$ref) {
+  private getSchemaReference(
+    schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
+  ): string {
+    if ('$ref' in schema) {
       const refName = schema.$ref.split('/').pop();
       return `${refName}Schema`;
     }
-    
+
     // Handle inline schemas based on type
-    if (schema.type) {
+    if ('type' in schema) {
       switch (schema.type) {
         case 'string':
           return 'z.string()';
@@ -223,8 +216,22 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
           }
           return 'z.array(z.unknown())';
         case 'object':
-          // For complex objects without $ref, fallback to unknown
-          return 'z.unknown()';
+          if (schema.properties) {
+            const props = Object.entries(schema.properties).map(([key, value]) => {
+              const propSchema = this.getSchemaReference(value);
+              const isRequired = schema.required?.includes(key);
+              const optional = isRequired ? '' : '.optional()';
+              return `  ${key}: ${propSchema}${optional}`;
+            });
+            return `z.object({\n${props.join(',\n')}\n})`;
+          }
+          if (schema.additionalProperties) {
+            const additional = typeof schema.additionalProperties === 'object'
+              ? this.getSchemaReference(schema.additionalProperties)
+              : 'z.unknown()';
+            return `z.record(${additional})`;
+          }
+          return 'z.object({})';
         default:
           return 'z.unknown()';
       }

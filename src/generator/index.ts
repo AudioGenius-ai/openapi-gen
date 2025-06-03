@@ -1,11 +1,16 @@
-import * as fs from "fs-extra";
-import * as path from "path";
-import { OpenAPIParser } from "../utils/openapi-parser";
-import { SchemaGenerator } from "./schema-generator";
-import { EndpointGenerator } from "./endpoint-generator";
-import { HooksGenerator } from "./hooks-generator";
-import { SdkGenerator } from "./sdk-generator";
-import { format } from "prettier";
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import {
+  OpenAPIParser,
+  type ParsedOperation,
+  type ParsedSchema,
+  type ParsedSpec,
+} from '../utils/openapi-parser';
+import { SchemaGenerator } from './schema-generator';
+import { EndpointGenerator } from './endpoint-generator';
+import { HooksGenerator } from './hooks-generator';
+import { SdkGenerator } from './sdk-generator';
+import { format, type Options as PrettierOptions } from 'prettier';
 
 export interface GeneratorConfig {
   inputPath: string;
@@ -13,7 +18,16 @@ export interface GeneratorConfig {
   apiClientName?: string;
   baseUrl?: string;
   generateHooks?: boolean;
-  prettierConfig?: any;
+  prettierConfig?: PrettierOptions;
+}
+
+export interface GenerationResult {
+  models: string[];
+  apiClient: string;
+  endpoints: string[];
+  sdk: string;
+  hooks?: string[];
+  indexFile: string;
 }
 
 export class CodeGenerator {
@@ -22,7 +36,7 @@ export class CodeGenerator {
   private endpointGenerator: EndpointGenerator;
   private hooksGenerator: HooksGenerator;
   private sdkGenerator: SdkGenerator;
-  private prettierConfig: any = {};
+  private prettierConfig: PrettierOptions = {};
 
   constructor() {
     this.parser = new OpenAPIParser();
@@ -32,7 +46,7 @@ export class CodeGenerator {
     this.sdkGenerator = new SdkGenerator();
   }
 
-  async generate(config: GeneratorConfig): Promise<void> {
+  async generate(config: GeneratorConfig): Promise<GenerationResult> {
     this.prettierConfig = config.prettierConfig || {};
     console.log("🚀 Starting OpenAPI code generation...");
 
@@ -52,44 +66,57 @@ export class CodeGenerator {
 
     // Generate schemas (Zod models)
     console.log("🔨 Generating Zod schemas...");
-    await this.generateSchemas(spec.schemas, config.outputDir);
+    const modelFiles = await this.generateSchemas(spec.schemas, config.outputDir);
 
     // Generate API client base
     console.log("🌐 Generating base API client...");
-    await this.generateApiClient(config.outputDir);
+    const apiClientFile = await this.generateApiClient(config.outputDir);
 
     // Generate endpoint classes
     console.log("⚡ Generating endpoint classes...");
-    await this.generateEndpoints(spec.operations, spec.tags, config.outputDir);
+    const endpointFiles = await this.generateEndpoints(
+      spec.operations,
+      spec.tags,
+      config.outputDir,
+    );
 
     // Generate SDK wrapper
     console.log("📚 Generating SDK wrapper...");
-    await this.generateSdk(spec.tags, config.outputDir);
+    const sdkFile = await this.generateSdk(spec.tags, config.outputDir);
 
     // Generate React Query hooks (if enabled)
+    let hookFiles: string[] | undefined;
     if (config.generateHooks !== false) {
       console.log("🪝 Generating React Query hooks...");
-      await this.generateHooks(
+      hookFiles = await this.generateHooks(
         spec.operations,
         spec.tags,
         config.outputDir,
-        config.baseUrl
+        config.baseUrl,
       );
     }
 
     // Generate index files
     console.log("📦 Generating index files...");
-    await this.generateIndexFiles(spec.schemas, spec.tags, config);
+    const indexFile = await this.generateIndexFiles(spec.schemas, spec.tags, config);
 
     console.log("✅ Code generation completed successfully!");
+
+    return {
+      models: modelFiles,
+      apiClient: apiClientFile,
+      endpoints: endpointFiles,
+      sdk: sdkFile,
+      hooks: hookFiles,
+      indexFile,
+    };
   }
 
-  private async parseSpec(inputPath: string) {
-    if (inputPath.startsWith("http")) {
+  private async parseSpec(inputPath: string): Promise<ParsedSpec> {
+    if (inputPath.startsWith('http')) {
       return await this.parser.parseFromUrl(inputPath);
-    } else {
-      return await this.parser.parseFromFile(inputPath);
     }
+    return await this.parser.parseFromFile(inputPath);
   }
 
   private async createDirectories(outputDir: string): Promise<void> {
@@ -105,16 +132,19 @@ export class CodeGenerator {
   }
 
   private async generateSchemas(
-    schemas: any[],
+    schemas: ParsedSchema[],
     outputDir: string,
-  ): Promise<void> {
+  ): Promise<string[]> {
     const modelsDir = path.join(outputDir, "models");
     const generatedSchemas = this.schemaGenerator.generateSchemas(schemas);
+
+    const writtenFiles: string[] = [];
 
     for (const schema of generatedSchemas) {
       const filePath = path.join(modelsDir, `${schema.name}.ts`);
       const formattedContent = await this.formatCode(schema.content);
       await fs.writeFile(filePath, formattedContent);
+      writtenFiles.push(filePath);
     }
 
     // Generate models index file
@@ -122,10 +152,14 @@ export class CodeGenerator {
       generatedSchemas.map((s) => s.name),
     );
     const formattedIndex = await this.formatCode(indexContent);
-    await fs.writeFile(path.join(modelsDir, "index.ts"), formattedIndex);
+    const indexPath = path.join(modelsDir, "index.ts");
+    await fs.writeFile(indexPath, formattedIndex);
+    writtenFiles.push(indexPath);
+
+    return writtenFiles;
   }
 
-  private async generateApiClient(outputDir: string): Promise<void> {
+  private async generateApiClient(outputDir: string): Promise<string> {
     // Copy the base ApiClient to the output directory
     const apiClientPath = path.join(__dirname, "../../src/ApiClient.ts");
     const outputPath = path.join(outputDir, "ApiClient.ts");
@@ -133,15 +167,17 @@ export class CodeGenerator {
     const content = await fs.readFile(apiClientPath, "utf-8");
     const formattedContent = await this.formatCode(content);
     await fs.writeFile(outputPath, formattedContent);
+    return outputPath;
   }
 
   private async generateEndpoints(
-    operations: any[],
+    operations: ParsedOperation[],
     tags: string[],
     outputDir: string,
-  ): Promise<void> {
+  ): Promise<string[]> {
     const endpointsDir = path.join(outputDir, "endpoints");
     const generatedClasses: string[] = [];
+    const writtenFiles: string[] = [];
 
     for (const tag of tags) {
       const endpoint = this.endpointGenerator.generateEndpointClasses(
@@ -152,29 +188,38 @@ export class CodeGenerator {
       const formattedContent = await this.formatCode(endpoint.content);
       await fs.writeFile(filePath, formattedContent);
       generatedClasses.push(endpoint.className);
+      writtenFiles.push(filePath);
     }
 
     // Generate endpoints index file
     const indexContent =
       this.endpointGenerator.generateIndexFile(generatedClasses);
     const formattedIndex = await this.formatCode(indexContent);
-    await fs.writeFile(path.join(endpointsDir, "index.ts"), formattedIndex);
+    const indexPath = path.join(endpointsDir, "index.ts");
+    await fs.writeFile(indexPath, formattedIndex);
+    writtenFiles.push(indexPath);
+
+    return writtenFiles;
   }
 
-  private async generateSdk(tags: string[], outputDir: string): Promise<void> {
+  private async generateSdk(tags: string[], outputDir: string): Promise<string> {
     const classNames = tags.map((tag) => this.parser.generateClassName(tag));
     const sdkContent = this.sdkGenerator.generateSdk(classNames);
     const formatted = await this.formatCode(sdkContent);
-    await fs.writeFile(path.join(outputDir, "ApiSDK.ts"), formatted);
+    const filePath = path.join(outputDir, "ApiSDK.ts");
+    await fs.writeFile(filePath, formatted);
+    return filePath;
   }
 
   private async generateHooks(
-    operations: any[],
+    operations: ParsedOperation[],
     tags: string[],
     outputDir: string,
     baseUrl?: string
-  ): Promise<void> {
+  ): Promise<string[]> {
     const hooksDir = path.join(outputDir, "hooks");
+
+    const writtenFiles: string[] = [];
 
     for (const tag of tags) {
       const tagOperations = operations.filter(op => {
@@ -207,24 +252,31 @@ export class CodeGenerator {
       const filePath = path.join(hooksDir, `${tag}.ts`);
       const formattedContent = await this.formatCode(hooksFile.content);
       await fs.writeFile(filePath, formattedContent);
+      writtenFiles.push(filePath);
     }
 
     // Generate query keys file
     const queryKeysContent = this.hooksGenerator.generateQueryKeys(operations);
     const formattedQueryKeys = await this.formatCode(queryKeysContent);
-    await fs.writeFile(path.join(hooksDir, "queryKeys.ts"), formattedQueryKeys);
+    const queryKeysPath = path.join(hooksDir, "queryKeys.ts");
+    await fs.writeFile(queryKeysPath, formattedQueryKeys);
+    writtenFiles.push(queryKeysPath);
 
     // Generate hooks index file
     const indexContent = this.hooksGenerator.generateIndexFile(tags);
     const formattedIndex = await this.formatCode(indexContent);
-    await fs.writeFile(path.join(hooksDir, "index.ts"), formattedIndex);
+    const indexPath = path.join(hooksDir, "index.ts");
+    await fs.writeFile(indexPath, formattedIndex);
+    writtenFiles.push(indexPath);
+
+    return writtenFiles;
   }
 
   private async generateIndexFiles(
-    schemas: any[],
+    schemas: ParsedSchema[],
     tags: string[],
     config: GeneratorConfig,
-  ): Promise<void> {
+  ): Promise<string> {
     const mainIndexContent = `// Generated API Client
 export * from './ApiClient';
 export * from './models';
@@ -234,10 +286,9 @@ ${config.generateHooks !== false ? "export * from './hooks';" : ""}
 `;
 
     const formattedMainIndex = await this.formatCode(mainIndexContent);
-    await fs.writeFile(
-      path.join(config.outputDir, "index.ts"),
-      formattedMainIndex,
-    );
+    const indexPath = path.join(config.outputDir, "index.ts");
+    await fs.writeFile(indexPath, formattedMainIndex);
+    return indexPath;
   }
 
   private async formatCode(code: string): Promise<string> {

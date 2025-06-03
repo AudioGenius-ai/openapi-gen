@@ -8,7 +8,7 @@ export { SdkGenerator } from "./generator/sdk-generator";
 export { ApiClient } from "./ApiClient";
 
 // Type exports
-export type { GeneratorConfig } from "./generator";
+export type { GeneratorConfig, GenerationResult } from "./generator";
 export type {
   ParsedOperation,
   ParsedSchema,

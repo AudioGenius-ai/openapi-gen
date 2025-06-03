@@ -45,36 +45,55 @@ export type ${name} = z.infer<typeof ${name}Schema>;
       return `${refName}Schema`;
     }
 
+    const nullable = (schema as any).nullable === true || (Array.isArray(schema.type) && (schema.type as any).includes('null'));
+    const originalType = Array.isArray(schema.type) ? (schema.type as any).filter((t: any) => t !== 'null') : schema.type;
+    const schemaCopy: any = { ...schema, type: originalType };
+
     // Check for enum first, before type-specific handling
-    if (schema.enum) {
-      return this.handleEnumSchema(schema);
+    if (schemaCopy.enum) {
+      let result = this.handleEnumSchema(schemaCopy);
+      return nullable ? `z.union([${result}, z.null()])` : result;
     }
 
-    switch (schema.type) {
-      case 'string':
-        return this.handleStringSchema(schema);
+    let result: string;
+    if (Array.isArray(schemaCopy.type)) {
+      const parts = schemaCopy.type.map((t: any) =>
+        this.convertToZodSchema({ ...schema, type: t } as any, dependencies)
+      );
+      result = parts.length === 1 ? parts[0] : `z.union([${parts.join(', ')}])`;
+    } else {
+      switch (schemaCopy.type) {
+        case 'string':
+          result = this.handleStringSchema(schemaCopy);
+          break;
       case 'number':
       case 'integer':
-        return this.handleNumberSchema(schema);
+        result = this.handleNumberSchema(schemaCopy);
+        break;
       case 'boolean':
-        return 'z.boolean()';
+        result = 'z.boolean()';
+        break;
       case 'array':
-        return this.handleArraySchema(schema as OpenAPIV3.ArraySchemaObject, dependencies);
+        result = this.handleArraySchema(schemaCopy as OpenAPIV3.ArraySchemaObject, dependencies);
+        break;
       case 'object':
-        return this.handleObjectSchema(schema, dependencies);
+        result = this.handleObjectSchema(schemaCopy, dependencies);
+        break;
       default:
-        if (schema.oneOf) {
-          return this.handleOneOfSchema(schema, dependencies);
+        if (schemaCopy.oneOf) {
+          result = this.handleOneOfSchema(schemaCopy, dependencies);
+        } else if (schemaCopy.anyOf) {
+          result = this.handleAnyOfSchema(schemaCopy, dependencies);
+        } else if (schemaCopy.allOf) {
+          result = this.handleAllOfSchema(schemaCopy, dependencies);
+        } else {
+          result = 'z.unknown()';
         }
-        if (schema.anyOf) {
-          return this.handleAnyOfSchema(schema, dependencies);
-        }
-        if (schema.allOf) {
-          return this.handleAllOfSchema(schema, dependencies);
-        }
-        // Default to unknown for unsupported types
-        return 'z.unknown()';
+          break;
+      }
     }
+
+    return nullable ? `z.union([${result}, z.null()])` : result;
   }
 
   private handleStringSchema(schema: OpenAPIV3.SchemaObject): string {

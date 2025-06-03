@@ -12,6 +12,10 @@ export interface MethodParameter {
   type: string;
   required: boolean;
   location: 'path' | 'query' | 'header' | 'body';
+  style?: string;
+  explode?: boolean;
+  allowReserved?: boolean;
+  example?: any;
 }
 
 export interface GeneratedMethod {
@@ -110,9 +114,13 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
         if (!seenParams.has(paramName)) {
           const parameter: MethodParameter = {
             name: paramName,
-            type: this.getParameterType(param.schema),
-            required: param.required || false,
-            location: param.in as 'query' | 'header',
+            type: this.getParameterType((param as any).schema),
+            required: (param as any).required || false,
+            location: (param as any).in as 'query' | 'header',
+            style: (param as any).style,
+            explode: (param as any).explode,
+            allowReserved: (param as any).allowReserved,
+            example: (param as any).example,
           };
           parameters.push(parameter);
           seenParams.add(paramName);

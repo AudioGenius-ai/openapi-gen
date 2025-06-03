@@ -41,6 +41,11 @@ describe('ApiClient', () => {
       expect(minimalClient['headers']).toEqual({})
       expect(minimalClient['timeout']).toBe(30000)
     })
+
+    it('should pick baseUrl from servers when not provided', () => {
+      const c = new ApiClient({ servers: [{ url: 'https://srv.com' }] })
+      expect(c['baseUrl']).toBe('https://srv.com')
+    })
   })
 
   describe('request method', () => {
@@ -141,6 +146,28 @@ describe('ApiClient', () => {
             'Authorization': 'Bearer token',
             'Custom-Header': 'value'
           }
+        })
+      )
+    })
+
+    it('should apply auth headers from security schemes', async () => {
+      const clientAuth = new ApiClient({
+        servers: [{ url: 'https://api.example.com' }],
+        securitySchemes: { ApiKeyAuth: { type: 'apiKey', name: 'X-API', in: 'header' } },
+        auth: { ApiKeyAuth: 'secret' }
+      })
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        json: () => Promise.resolve({})
+      })
+
+      await clientAuth['request']('GET', '/test', z.object({}))
+
+      expect(fetch).toHaveBeenCalledWith(
+        'https://api.example.com/test',
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'X-API': 'secret' })
         })
       )
     })

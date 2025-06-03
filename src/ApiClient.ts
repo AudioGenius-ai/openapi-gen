@@ -1,20 +1,29 @@
 import { z } from 'zod';
 
 export interface ApiClientConfig {
-  baseUrl: string;
+  baseUrl?: string;
+  servers?: { url: string }[];
   headers?: Record<string, string>;
   timeout?: number;
+  securitySchemes?: Record<string, any>;
+  auth?: Record<string, string>;
 }
 
 export class ApiClient {
   protected baseUrl: string;
   protected headers: Record<string, string>;
   protected timeout: number;
+  protected securitySchemes?: Record<string, any>;
+  protected auth?: Record<string, string>;
 
   constructor(config: ApiClientConfig) {
-    this.baseUrl = config.baseUrl.replace(/\/$/, ''); // Remove trailing slash
+    const urlFromServers = config.servers && config.servers.length > 0 ? config.servers[0].url : '';
+    const base = config.baseUrl || urlFromServers || '';
+    this.baseUrl = base.replace(/\/$/, '');
     this.headers = config.headers || {};
     this.timeout = config.timeout || 30000;
+    this.securitySchemes = config.securitySchemes;
+    this.auth = config.auth;
   }
 
   protected async request<Schema extends z.ZodTypeAny>(
@@ -50,6 +59,18 @@ export class ApiClient {
       ...this.headers,
       ...headers,
     };
+
+    // Apply authentication headers for apiKey schemes (header only)
+    if (this.securitySchemes && this.auth) {
+      for (const [name, scheme] of Object.entries(this.securitySchemes)) {
+        if (scheme.type === 'apiKey' && scheme.in === 'header') {
+          const token = this.auth[name];
+          if (token) {
+            requestHeaders[scheme.name] = token;
+          }
+        }
+      }
+    }
 
     if (body && !requestHeaders['Content-Type']) {
       requestHeaders['Content-Type'] = 'application/json';

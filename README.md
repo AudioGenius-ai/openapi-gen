@@ -11,6 +11,8 @@ A powerful TypeScript code generator that creates type-safe API clients from Ope
 - 🎯 **DRY design** with minimal code duplication
 - 🔧 **Customizable** with flexible configuration options
 - 📖 **Well-documented** generated code
+- 🌐 **Automatic base URL selection** from OpenAPI servers
+- 🔐 **Security headers** applied using security schemes
 
 ## Installation
 
@@ -319,7 +321,7 @@ await generator.generate({
 
 ## OpenAPI Support
 
-This generator supports OpenAPI 3.0+ specifications and handles:
+This generator supports OpenAPI 2.0, 3.0 and 3.1 specifications and handles:
 
 - ✅ All primitive types (string, number, boolean, array, object)
 - ✅ String formats (email, uri, uuid, date-time, etc.)
@@ -330,6 +332,7 @@ This generator supports OpenAPI 3.0+ specifications and handles:
 - ✅ String validation with length and pattern constraints
 - ✅ Union types (oneOf, anyOf)
 - ✅ Intersection types (allOf)
+- ✅ Nullable fields handled automatically
 - ✅ Reference resolution ($ref)
 - ✅ Path parameters
 - ✅ Query parameters

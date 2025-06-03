@@ -1,5 +1,5 @@
 import SwaggerParser from '@apidevtools/swagger-parser';
-import { OpenAPIV3 } from 'openapi-types';
+import { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types';
 
 export interface ParsedOperation {
   operationId?: string;
@@ -11,6 +11,9 @@ export interface ParsedOperation {
   parameters?: OpenAPIV3.ParameterObject[];
   requestBody?: OpenAPIV3.RequestBodyObject;
   responses: OpenAPIV3.ResponsesObject;
+  servers?: OpenAPIV3.ServerObject[];
+  security?: OpenAPIV3.SecurityRequirementObject[];
+  callbacks?: Record<string, OpenAPIV3.CallbackObject>;
 }
 
 export interface ParsedSchema {
@@ -23,24 +26,78 @@ export interface ParsedSpec {
   operations: ParsedOperation[];
   schemas: ParsedSchema[];
   tags: string[];
+  version: string;
+  servers?: OpenAPIV3.ServerObject[];
+  securitySchemes?: Record<string, OpenAPIV3.SecuritySchemeObject>;
+  globalSecurity?: OpenAPIV3.SecurityRequirementObject[];
+  webhooks?: Record<string, OpenAPIV3.PathItemObject>;
 }
 
 export class OpenAPIParser {
-  private spec: OpenAPIV3.Document | null = null;
+  private spec: OpenAPIV3.Document | OpenAPIV3_1.Document | null = null;
+  private version = '';
 
   async parseFromFile(filePath: string): Promise<ParsedSpec> {
-    this.spec = await SwaggerParser.dereference(filePath) as OpenAPIV3.Document;
+    const doc = await SwaggerParser.dereference(filePath) as any;
+    this.processSpec(doc);
     return this.extractParsedSpec();
   }
 
   async parseFromUrl(url: string): Promise<ParsedSpec> {
-    this.spec = await SwaggerParser.dereference(url) as OpenAPIV3.Document;
+    const doc = await SwaggerParser.dereference(url) as any;
+    this.processSpec(doc);
     return this.extractParsedSpec();
   }
 
-  async parseFromObject(spec: OpenAPIV3.Document): Promise<ParsedSpec> {
-    this.spec = await SwaggerParser.dereference(spec) as OpenAPIV3.Document;
+  async parseFromObject(spec: OpenAPIV2.Document | OpenAPIV3.Document | OpenAPIV3_1.Document): Promise<ParsedSpec> {
+    const doc = await SwaggerParser.dereference(spec as any) as any;
+    this.processSpec(doc);
     return this.extractParsedSpec();
+  }
+
+  private processSpec(doc: any) {
+    if ('swagger' in doc && doc.swagger.startsWith('2')) {
+      this.version = '2';
+      this.spec = this.convertV2ToV3(doc as OpenAPIV2.Document);
+    } else if ('openapi' in doc) {
+      this.version = doc.openapi.startsWith('3.1') ? '3.1' : '3';
+      this.spec = doc as OpenAPIV3.Document | OpenAPIV3_1.Document;
+    } else {
+      throw new Error('Unsupported OpenAPI version');
+    }
+  }
+
+  // Minimal v2 -> v3 conversion to support basic features
+  private convertV2ToV3(doc: OpenAPIV2.Document): OpenAPIV3.Document {
+    const servers: OpenAPIV3.ServerObject[] = [];
+    if (doc.host) {
+      const schemes = doc.schemes && doc.schemes.length > 0 ? doc.schemes : ['http'];
+      schemes.forEach((scheme) => {
+        servers.push({ url: `${scheme}://${doc.host}${doc.basePath || ''}` });
+      });
+    } else if (doc.basePath) {
+      servers.push({ url: doc.basePath });
+    }
+
+    const components: OpenAPIV3.ComponentsObject = {};
+    if (doc.definitions) {
+      components.schemas = doc.definitions as unknown as Record<string, OpenAPIV3.SchemaObject>;
+    }
+    if (doc.securityDefinitions) {
+      components.securitySchemes = doc.securityDefinitions as unknown as Record<string, OpenAPIV3.SecuritySchemeObject>;
+    }
+
+    const converted: OpenAPIV3.Document = {
+      openapi: '3.0.0',
+      info: doc.info,
+      paths: doc.paths as unknown as OpenAPIV3.PathsObject,
+      servers,
+      components,
+      security: doc.security as any,
+      tags: doc.tags as any,
+    };
+
+    return converted;
   }
 
   private extractParsedSpec(): ParsedSpec {
@@ -57,6 +114,11 @@ export class OpenAPIParser {
       operations,
       schemas,
       tags,
+      version: this.version,
+      servers: this.spec.servers,
+      securitySchemes: this.spec.components?.securitySchemes as Record<string, OpenAPIV3.SecuritySchemeObject>,
+      globalSecurity: this.spec.security as OpenAPIV3.SecurityRequirementObject[] | undefined,
+      webhooks: (this.spec as any).webhooks,
     };
   }
 
@@ -89,6 +151,9 @@ export class OpenAPIParser {
           parameters: allParameters,
           requestBody: operation.requestBody as OpenAPIV3.RequestBodyObject,
           responses: operation.responses,
+          servers: operation.servers || this.spec?.servers,
+          security: operation.security || (this.spec as any).security,
+          callbacks: operation.callbacks as any,
         });
       });
     });

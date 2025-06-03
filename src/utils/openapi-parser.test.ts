@@ -224,6 +224,24 @@ describe('OpenAPIParser', () => {
     })
   })
 
+  describe('version and servers', () => {
+    it('should detect v2 specs and convert servers', async () => {
+      const spec: any = {
+        swagger: '2.0',
+        info: { title: 'V2', version: '1' },
+        host: 'api.example.com',
+        basePath: '/v2',
+        schemes: ['https'],
+        paths: { '/ping': { get: { responses: { '200': { description: 'ok' } } } } },
+        securityDefinitions: { ApiKeyAuth: { type: 'apiKey', name: 'X-API', in: 'header' } },
+      };
+
+      const result = await parser.parseFromObject(spec);
+      expect(result.version).toBe('2');
+      expect(result.servers?.[0].url).toBe('https://api.example.com/v2');
+    });
+  })
+
   describe('error handling', () => {
     it('should throw error when no spec is loaded', () => {
       // Create a new parser that hasn't loaded any spec

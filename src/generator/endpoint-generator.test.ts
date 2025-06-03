@@ -95,9 +95,34 @@ describe('EndpointGenerator', () => {
       }
 
       const result = generator.generateEndpointClasses([operation], 'default')
-      
+
       expect(result.content).toContain('limit?: number')
       expect(result.content).toContain('queryParams: { limit }')
+    })
+
+    it('should preserve parameter style options', () => {
+      const operation: ParsedOperation = {
+        method: 'GET',
+        path: '/users',
+        parameters: [{
+          name: 'ids',
+          in: 'query',
+          required: false,
+          schema: { type: 'array' },
+          style: 'form',
+          explode: true,
+          allowReserved: true,
+          example: [1,2]
+        }],
+        responses: { '200': { description: 'ok' } }
+      }
+
+      const method = generator.generateMethod(operation)
+      const param = method.parameters[0]
+      expect(param.style).toBe('form')
+      expect(param.explode).toBe(true)
+      expect(param.allowReserved).toBe(true)
+      expect(param.example).toEqual([1,2])
     })
 
     it('should generate method with request body', () => {

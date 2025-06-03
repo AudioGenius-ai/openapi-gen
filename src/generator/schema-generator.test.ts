@@ -150,6 +150,31 @@ describe('SchemaGenerator', () => {
       expect(result[0].content).toContain('z.union([z.string(), z.boolean()])')
     })
 
+    it('should handle nullable schemas', () => {
+      const schemas: ParsedSchema[] = [{
+        name: 'NullableName',
+        schema: {
+          type: 'string',
+          nullable: true
+        }
+      }]
+
+      const result = generator.generateSchemas(schemas)
+      expect(result[0].content).toContain('z.union([z.string(), z.null()])')
+    })
+
+    it('should handle type array with null', () => {
+      const schemas: ParsedSchema[] = [{
+        name: 'MaybeNumber',
+        schema: {
+          type: ['number', 'null'] as any
+        }
+      }]
+
+      const result = generator.generateSchemas(schemas)
+      expect(result[0].content).toContain('z.union([z.number(), z.null()])')
+    })
+
     it('should handle allOf schemas', () => {
       const schemas: ParsedSchema[] = [{
         name: 'Combined',

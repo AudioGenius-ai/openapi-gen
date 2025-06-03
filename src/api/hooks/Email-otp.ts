@@ -30,7 +30,7 @@ export function usePostAuthEmailotpSendverificationotp(
 export function usePostAuthEmailotpVerifyemail(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthEmailotpVerifyemailResponseType,
       Error,
       { data: Record<string, any> }
     >,
@@ -86,13 +86,15 @@ export function usePostAuthEmailotpResetpassword(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthEmailotpResetpasswordRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAuthEmailotpResetpasswordRequestType;
+    }) => {
       return apiSDK.emailOtpApi.postAuthEmailotpResetpassword(variables.data);
     },
     ...mutationOptions,

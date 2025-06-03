@@ -53,7 +53,7 @@ export function useGetAdminPaymentsAppstoreReviews(
 export function usePostAdminPaymentsAppstoreReviewsRespond(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsAppstoreReviewsRespondResponseType,
       Error,
       { data: Record<string, any> }
     >,

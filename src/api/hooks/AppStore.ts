@@ -25,13 +25,15 @@ export function usePostAdminPaymentsAppstoreAppleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreAppleProductsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreAppleProductsRequestType;
+    }) => {
       return apiSDK.appstoreApi.postAdminPaymentsAppstoreAppleProducts(
         variables.data
       );
@@ -45,7 +47,10 @@ export function usePutAdminPaymentsAppstoreAppleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { productId: string | number; data: Record<string, any> }
+      {
+        productId: string | number;
+        data: PutAdminPaymentsAppstoreAppleProductsRequestType;
+      }
     >,
     'mutationFn'
   >
@@ -53,7 +58,7 @@ export function usePutAdminPaymentsAppstoreAppleProducts(
   return useMutation({
     mutationFn: (variables: {
       productId: string | number;
-      data: Record<string, any>;
+      data: PutAdminPaymentsAppstoreAppleProductsRequestType;
     }) => {
       return apiSDK.appstoreApi.putAdminPaymentsAppstoreAppleProducts(
         variables.productId,
@@ -82,13 +87,15 @@ export function usePostAdminPaymentsAppstoreGoogleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreGoogleProductsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreGoogleProductsRequestType;
+    }) => {
       return apiSDK.appstoreApi.postAdminPaymentsAppstoreGoogleProducts(
         variables.data
       );
@@ -102,7 +109,10 @@ export function usePutAdminPaymentsAppstoreGoogleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { sku: string | number; data: Record<string, any> }
+      {
+        sku: string | number;
+        data: PutAdminPaymentsAppstoreGoogleProductsRequestType;
+      }
     >,
     'mutationFn'
   >
@@ -110,7 +120,7 @@ export function usePutAdminPaymentsAppstoreGoogleProducts(
   return useMutation({
     mutationFn: (variables: {
       sku: string | number;
-      data: Record<string, any>;
+      data: PutAdminPaymentsAppstoreGoogleProductsRequestType;
     }) => {
       return apiSDK.appstoreApi.putAdminPaymentsAppstoreGoogleProducts(
         variables.sku,
@@ -167,7 +177,7 @@ export function useGetAdminPaymentsAppstoreReviews(
 export function usePostAdminPaymentsAppstoreReviewsRespond(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsAppstoreReviewsRespondResponseType,
       Error,
       { data: Record<string, any> }
     >,
@@ -187,15 +197,17 @@ export function usePostAdminPaymentsAppstoreReviewsRespond(
 export function usePostAdminPaymentsAppstoreSync(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsAppstoreSyncResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreSyncRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreSyncRequestType;
+    }) => {
       return apiSDK.appstoreApi.postAdminPaymentsAppstoreSync(variables.data);
     },
     ...mutationOptions,
@@ -205,15 +217,17 @@ export function usePostAdminPaymentsAppstoreSync(
 export function usePostAdminPaymentsAppstoreWebhookValidate(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsAppstoreWebhookValidateResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreWebhookValidateRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreWebhookValidateRequestType;
+    }) => {
       return apiSDK.appstoreApi.postAdminPaymentsAppstoreWebhookValidate(
         variables.data
       );

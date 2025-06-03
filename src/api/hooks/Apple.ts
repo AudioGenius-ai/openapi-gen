@@ -25,13 +25,15 @@ export function usePostAdminPaymentsAppstoreAppleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreAppleProductsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreAppleProductsRequestType;
+    }) => {
       return apiSDK.appleApi.postAdminPaymentsAppstoreAppleProducts(
         variables.data
       );
@@ -45,7 +47,10 @@ export function usePutAdminPaymentsAppstoreAppleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { productId: string | number; data: Record<string, any> }
+      {
+        productId: string | number;
+        data: PutAdminPaymentsAppstoreAppleProductsRequestType;
+      }
     >,
     'mutationFn'
   >
@@ -53,7 +58,7 @@ export function usePutAdminPaymentsAppstoreAppleProducts(
   return useMutation({
     mutationFn: (variables: {
       productId: string | number;
-      data: Record<string, any>;
+      data: PutAdminPaymentsAppstoreAppleProductsRequestType;
     }) => {
       return apiSDK.appleApi.putAdminPaymentsAppstoreAppleProducts(
         variables.productId,

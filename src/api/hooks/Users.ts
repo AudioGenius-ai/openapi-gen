@@ -42,7 +42,7 @@ export function usePutUsers(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data?: Record<string, any> }
+      { id: string | number; data?: PutUsersRequestType }
     >,
     'mutationFn'
   >
@@ -50,7 +50,7 @@ export function usePutUsers(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data?: Record<string, any>;
+      data?: PutUsersRequestType;
     }) => {
       return apiSDK.usersApi.putUsers(variables.id, variables.data);
     },
@@ -61,7 +61,7 @@ export function usePutUsers(
 export function usePostUsersAvatar(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostUsersAvatarResponseType,
       Error,
       { id: string | number; data?: Record<string, any> }
     >,
@@ -96,7 +96,7 @@ export function useDeleteUsersAvatar(
 export function usePostUsersAvatarVerify(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostUsersAvatarVerifyResponseType,
       Error,
       { id: string | number; data?: Record<string, any> }
     >,
@@ -192,7 +192,7 @@ export function usePatchAdminUsers(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data: Record<string, any> }
+      { id: string | number; data: PatchAdminUsersRequestType }
     >,
     'mutationFn'
   >
@@ -200,7 +200,7 @@ export function usePatchAdminUsers(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data: Record<string, any>;
+      data: PatchAdminUsersRequestType;
     }) => {
       return apiSDK.usersApi.patchAdminUsers(variables.id, variables.data);
     },

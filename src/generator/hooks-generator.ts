@@ -293,7 +293,8 @@ ${hookContents}
           type &&
           !builtInTypes.includes(type) &&
           !isBuiltInGeneric &&
-          !type.startsWith('z.')
+          !type.startsWith('z.') &&
+          !type.endsWith('Type') // Don't import inline types from models
         ) {
           types.add(type);
         }

@@ -25,13 +25,13 @@ export function usePostOrganizations(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostOrganizationsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostOrganizationsRequestType }) => {
       return apiSDK.organizationsApi.postOrganizations(variables.data);
     },
     ...mutationOptions,
@@ -58,7 +58,7 @@ export function usePutOrganizations(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data?: Record<string, any> }
+      { id: string | number; data?: PutOrganizationsRequestType }
     >,
     'mutationFn'
   >
@@ -66,7 +66,7 @@ export function usePutOrganizations(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data?: Record<string, any>;
+      data?: PutOrganizationsRequestType;
     }) => {
       return apiSDK.organizationsApi.putOrganizations(
         variables.id,

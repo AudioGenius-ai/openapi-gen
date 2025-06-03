@@ -12,13 +12,13 @@ export function useSocialSignIn(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: SocialSignInRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: SocialSignInRequestType }) => {
       return apiSDK.defaultApi.socialSignIn(variables.data);
     },
     ...mutationOptions,
@@ -61,13 +61,13 @@ export function usePostAuthSignupEmail(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostAuthSignupEmailRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostAuthSignupEmailRequestType }) => {
       return apiSDK.defaultApi.postAuthSignupEmail(variables.data);
     },
     ...mutationOptions,
@@ -77,15 +77,15 @@ export function usePostAuthSignupEmail(
 export function usePostAuthSigninEmail(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthSigninEmailResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthSigninEmailRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAuthSigninEmailRequestType }) => {
       return apiSDK.defaultApi.postAuthSigninEmail(variables.data);
     },
     ...mutationOptions,
@@ -186,13 +186,13 @@ export function usePostAuthChangepassword(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthChangepasswordRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAuthChangepasswordRequestType }) => {
       return apiSDK.defaultApi.postAuthChangepassword(variables.data);
     },
     ...mutationOptions,
@@ -222,13 +222,13 @@ export function usePostAuthDeleteuser(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthDeleteuserRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAuthDeleteuserRequestType }) => {
       return apiSDK.defaultApi.postAuthDeleteuser(variables.data);
     },
     ...mutationOptions,
@@ -253,7 +253,10 @@ export function useGetAuthResetpassword(
 }
 
 export function useGetAuthListsessions(
-  queryOptions?: Omit<UseQueryOptions<unknown, Error>, 'queryKey' | 'queryFn'>
+  queryOptions?: Omit<
+    UseQueryOptions<GetAuthListsessionsResponseItemType[], Error>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery({
     queryKey: ['getAuthListsessions'],
@@ -321,13 +324,13 @@ export function usePostAuthLinksocial(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthLinksocialRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAuthLinksocialRequestType }) => {
       return apiSDK.defaultApi.postAuthLinksocial(variables.data);
     },
     ...mutationOptions,
@@ -335,7 +338,10 @@ export function usePostAuthLinksocial(
 }
 
 export function useGetAuthListaccounts(
-  queryOptions?: Omit<UseQueryOptions<unknown, Error>, 'queryKey' | 'queryFn'>
+  queryOptions?: Omit<
+    UseQueryOptions<GetAuthListaccountsResponseItemType[], Error>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery({
     queryKey: ['getAuthListaccounts'],
@@ -387,15 +393,15 @@ export function usePostAuthUnlinkaccount(
 export function usePostAuthRefreshtoken(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthRefreshtokenResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthRefreshtokenRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAuthRefreshtokenRequestType }) => {
       return apiSDK.defaultApi.postAuthRefreshtoken(variables.data);
     },
     ...mutationOptions,
@@ -405,15 +411,15 @@ export function usePostAuthRefreshtoken(
 export function usePostAuthGetaccesstoken(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthGetaccesstokenResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthGetaccesstokenRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAuthGetaccesstokenRequestType }) => {
       return apiSDK.defaultApi.postAuthGetaccesstoken(variables.data);
     },
     ...mutationOptions,

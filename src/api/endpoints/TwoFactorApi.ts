@@ -1,6 +1,77 @@
 import { ApiClient } from '../ApiClient';
 import { z } from 'zod';
 
+export interface PostAuthTwofactorVerifyotpResponseUserType {
+  id: string;
+  email?: string;
+  emailVerified?: boolean;
+  name?: string;
+  image?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const PostAuthTwofactorVerifyotpResponseUserTypeSchema = z.object({
+  id: z.string(),
+  email: z.string().email().optional(),
+  emailVerified: z.boolean().optional(),
+  name: z.string().optional(),
+  image: z.string().url().optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export interface PostAuthTwofactorVerifybackupcodeRequestType {
+  code: string;
+  disableSession?: string;
+  trustDevice?: string;
+}
+
+export const PostAuthTwofactorVerifybackupcodeRequestTypeSchema = z.object({
+  code: z.string(),
+  disableSession: z.string().optional(),
+  trustDevice: z.string().optional(),
+});
+
+export interface PostAuthTwofactorVerifybackupcodeResponseUserType {
+  id: string;
+  email?: string;
+  emailVerified?: boolean;
+  name?: string;
+  image?: string;
+  twoFactorEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const PostAuthTwofactorVerifybackupcodeResponseUserTypeSchema = z.object(
+  {
+    id: z.string(),
+    email: z.string().email().optional(),
+    emailVerified: z.boolean().optional(),
+    name: z.string().optional(),
+    image: z.string().url().optional(),
+    twoFactorEnabled: z.boolean(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  }
+);
+
+export interface PostAuthTwofactorVerifybackupcodeResponseSessionType {
+  token: string;
+  userId: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export const PostAuthTwofactorVerifybackupcodeResponseSessionTypeSchema =
+  z.object({
+    token: z.string(),
+    userId: z.string(),
+    createdAt: z.string().datetime(),
+    expiresAt: z.string().datetime(),
+  });
+
 export class TwoFactorApi extends ApiClient {
   postAuthTwofactorGettotpuri(
     data: Record<string, any>
@@ -53,15 +124,7 @@ export class TwoFactorApi extends ApiClient {
       `/auth/two-factor/verify-otp`,
       z.object({
         token: z.string(),
-        user: z.object({
-          id: z.string(),
-          email: z.string().email().optional(),
-          emailVerified: z.boolean().optional(),
-          name: z.string().optional(),
-          image: z.string().url().optional(),
-          createdAt: z.string().datetime(),
-          updatedAt: z.string().datetime(),
-        }),
+        user: PostAuthTwofactorVerifyotpResponseUserTypeSchema,
       }),
       {
         body: data,
@@ -74,35 +137,17 @@ export class TwoFactorApi extends ApiClient {
   }
 
   postAuthTwofactorVerifybackupcode(
-    data: Record<string, any>
+    data: PostAuthTwofactorVerifybackupcodeRequestType
   ): Promise<Record<string, any>> {
     return this.post(
       `/auth/two-factor/verify-backup-code`,
       z.object({
-        user: z.object({
-          id: z.string(),
-          email: z.string().email().optional(),
-          emailVerified: z.boolean().optional(),
-          name: z.string().optional(),
-          image: z.string().url().optional(),
-          twoFactorEnabled: z.boolean(),
-          createdAt: z.string().datetime(),
-          updatedAt: z.string().datetime(),
-        }),
-        session: z.object({
-          token: z.string(),
-          userId: z.string(),
-          createdAt: z.string().datetime(),
-          expiresAt: z.string().datetime(),
-        }),
+        user: PostAuthTwofactorVerifybackupcodeResponseUserTypeSchema,
+        session: PostAuthTwofactorVerifybackupcodeResponseSessionTypeSchema,
       }),
       {
         body: data,
-        bodySchema: z.object({
-          code: z.string(),
-          disableSession: z.string().optional(),
-          trustDevice: z.string().optional(),
-        }),
+        bodySchema: PostAuthTwofactorVerifybackupcodeRequestTypeSchema,
       }
     );
   }

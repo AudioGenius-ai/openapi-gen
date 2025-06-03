@@ -45,7 +45,7 @@ export function useGetAdminBlogPosts(
     page?: number;
   },
   queryOptions?: Omit<
-    UseQueryOptions<Record<string, any>, Error>,
+    UseQueryOptions<GetAdminBlogPostsResponseType, Error>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -75,13 +75,13 @@ export function usePostAdminBlogPosts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostAdminBlogPostsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostAdminBlogPostsRequestType }) => {
       return apiSDK.blogApi.postAdminBlogPosts(variables.data);
     },
     ...mutationOptions,
@@ -108,7 +108,7 @@ export function usePatchAdminBlogPosts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data?: Record<string, any> }
+      { id: string | number; data?: PatchAdminBlogPostsRequestType }
     >,
     'mutationFn'
   >
@@ -116,7 +116,7 @@ export function usePatchAdminBlogPosts(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data?: Record<string, any>;
+      data?: PatchAdminBlogPostsRequestType;
     }) => {
       return apiSDK.blogApi.patchAdminBlogPosts(variables.id, variables.data);
     },
@@ -141,15 +141,17 @@ export function useDeleteAdminBlogPosts(
 export function usePostAdminBlogPostsAutosave(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminBlogPostsAutosaveResponseType,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostAdminBlogPostsAutosaveRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data?: PostAdminBlogPostsAutosaveRequestType;
+    }) => {
       return apiSDK.blogApi.postAdminBlogPostsAutosave(variables.data);
     },
     ...mutationOptions,
@@ -176,13 +178,13 @@ export function usePostAdminBlogCategories(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostAdminBlogCategoriesRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostAdminBlogCategoriesRequestType }) => {
       return apiSDK.blogApi.postAdminBlogCategories(variables.data);
     },
     ...mutationOptions,
@@ -194,7 +196,7 @@ export function usePatchAdminBlogCategories(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data?: Record<string, any> }
+      { id: string | number; data?: PatchAdminBlogCategoriesRequestType }
     >,
     'mutationFn'
   >
@@ -202,7 +204,7 @@ export function usePatchAdminBlogCategories(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data?: Record<string, any>;
+      data?: PatchAdminBlogCategoriesRequestType;
     }) => {
       return apiSDK.blogApi.patchAdminBlogCategories(
         variables.id,

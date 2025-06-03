@@ -26,13 +26,13 @@ export function usePostAiCompletion(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostAiCompletionRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostAiCompletionRequestType }) => {
       return apiSDK.aiApi.postAiCompletion(variables.data);
     },
     ...mutationOptions,

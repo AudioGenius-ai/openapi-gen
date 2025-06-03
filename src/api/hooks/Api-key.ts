@@ -10,15 +10,15 @@ const apiSDK = new ApiSDK(process.env.REACT_APP_API_BASE_URL || '');
 export function usePostAuthApikeyCreate(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthApikeyCreateResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthApikeyCreateRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAuthApikeyCreateRequestType }) => {
       return apiSDK.keyApiApi.postAuthApikeyCreate(variables.data);
     },
     ...mutationOptions,
@@ -28,7 +28,7 @@ export function usePostAuthApikeyCreate(
 export function useGetAuthApikeyGet(
   options?: { id?: string },
   queryOptions?: Omit<
-    UseQueryOptions<Record<string, any>, Error>,
+    UseQueryOptions<GetAuthApikeyGetResponseType, Error>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -42,15 +42,15 @@ export function useGetAuthApikeyGet(
 export function usePostAuthApikeyUpdate(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthApikeyUpdateResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthApikeyUpdateRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAuthApikeyUpdateRequestType }) => {
       return apiSDK.keyApiApi.postAuthApikeyUpdate(variables.data);
     },
     ...mutationOptions,
@@ -76,7 +76,10 @@ export function usePostAuthApikeyDelete(
 }
 
 export function useGetAuthApikeyList(
-  queryOptions?: Omit<UseQueryOptions<unknown, Error>, 'queryKey' | 'queryFn'>
+  queryOptions?: Omit<
+    UseQueryOptions<GetAuthApikeyListResponseItemType[], Error>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery({
     queryKey: ['getAuthApikeyList'],

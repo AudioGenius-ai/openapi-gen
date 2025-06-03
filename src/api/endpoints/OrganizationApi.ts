@@ -1,47 +1,298 @@
 import { ApiClient } from '../ApiClient';
 import { z } from 'zod';
 
+export interface PostAuthOrganizationCreateRequestType {
+  name: string;
+  slug: string;
+  userId?: string;
+  logo?: string;
+  metadata?: string;
+  keepCurrentActiveOrganization?: string;
+}
+
+export const PostAuthOrganizationCreateRequestTypeSchema = z.object({
+  name: z.string(),
+  slug: z.string(),
+  userId: z.string().optional(),
+  logo: z.string().optional(),
+  metadata: z.string().optional(),
+  keepCurrentActiveOrganization: z.string().optional(),
+});
+
+export interface PostAuthOrganizationCreateResponseType {
+  id?: string;
+  name?: string;
+  slug?: string;
+  logo?: string;
+  createdAt?: string;
+  metadata?: string;
+}
+
+export const PostAuthOrganizationCreateResponseTypeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  slug: z.string().optional(),
+  logo: z.string().optional(),
+  createdAt: z.string().optional(),
+  metadata: z.string().optional(),
+});
+
+export interface PostAuthOrganizationUpdateResponseType {
+  id?: string;
+  name?: string;
+  slug?: string;
+  logo?: string;
+  createdAt?: string;
+  metadata?: string;
+}
+
+export const PostAuthOrganizationUpdateResponseTypeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  slug: z.string().optional(),
+  logo: z.string().optional(),
+  createdAt: z.string().optional(),
+  metadata: z.string().optional(),
+});
+
+export interface PostAuthOrganizationSetactiveResponseType {
+  id?: string;
+  name?: string;
+  slug?: string;
+  logo?: string;
+  createdAt?: string;
+  metadata?: string;
+}
+
+export const PostAuthOrganizationSetactiveResponseTypeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  slug: z.string().optional(),
+  logo: z.string().optional(),
+  createdAt: z.string().optional(),
+  metadata: z.string().optional(),
+});
+
+export interface GetAuthOrganizationGetfullorganizationResponseType {
+  id?: string;
+  name?: string;
+  slug?: string;
+  logo?: string;
+  createdAt?: string;
+  metadata?: string;
+}
+
+export const GetAuthOrganizationGetfullorganizationResponseTypeSchema =
+  z.object({
+    id: z.string().optional(),
+    name: z.string().optional(),
+    slug: z.string().optional(),
+    logo: z.string().optional(),
+    createdAt: z.string().optional(),
+    metadata: z.string().optional(),
+  });
+
+export interface GetAuthOrganizationListResponseItemType {
+  id?: string;
+  name?: string;
+  slug?: string;
+  logo?: string;
+  createdAt?: string;
+  metadata?: string;
+}
+
+export const GetAuthOrganizationListResponseItemTypeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  slug: z.string().optional(),
+  logo: z.string().optional(),
+  createdAt: z.string().optional(),
+  metadata: z.string().optional(),
+});
+
+export interface PostAuthOrganizationInvitememberRequestType {
+  email: string;
+  role: string;
+  organizationId?: string;
+  resend?: string;
+  teamId?: string;
+}
+
+export const PostAuthOrganizationInvitememberRequestTypeSchema = z.object({
+  email: z.string(),
+  role: z.string(),
+  organizationId: z.string().optional(),
+  resend: z.string().optional(),
+  teamId: z.string().optional(),
+});
+
+export interface PostAuthOrganizationInvitememberResponseType {
+  id: string;
+  email: string;
+  role: string;
+  organizationId: string;
+  inviterId: string;
+  status: string;
+  expiresAt: string;
+}
+
+export const PostAuthOrganizationInvitememberResponseTypeSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  role: z.string(),
+  organizationId: z.string(),
+  inviterId: z.string(),
+  status: z.string(),
+  expiresAt: z.string(),
+});
+
+export interface GetAuthOrganizationGetinvitationResponseType {
+  id: string;
+  email: string;
+  role: string;
+  organizationId: string;
+  inviterId: string;
+  status: string;
+  expiresAt: string;
+  organizationName: string;
+  organizationSlug: string;
+  inviterEmail: string;
+}
+
+export const GetAuthOrganizationGetinvitationResponseTypeSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  role: z.string(),
+  organizationId: z.string(),
+  inviterId: z.string(),
+  status: z.string(),
+  expiresAt: z.string(),
+  organizationName: z.string(),
+  organizationSlug: z.string(),
+  inviterEmail: z.string(),
+});
+
+export interface PostAuthOrganizationRemovememberResponseMemberType {
+  id: string;
+  userId: string;
+  organizationId: string;
+  role: string;
+}
+
+export const PostAuthOrganizationRemovememberResponseMemberTypeSchema =
+  z.object({
+    id: z.string(),
+    userId: z.string(),
+    organizationId: z.string(),
+    role: z.string(),
+  });
+
+export interface PostAuthOrganizationUpdatememberroleRequestType {
+  role: string;
+  memberId: string;
+  organizationId?: string;
+}
+
+export const PostAuthOrganizationUpdatememberroleRequestTypeSchema = z.object({
+  role: z.string(),
+  memberId: z.string(),
+  organizationId: z.string().optional(),
+});
+
+export interface PostAuthOrganizationUpdatememberroleResponseMemberType {
+  id: string;
+  userId: string;
+  organizationId: string;
+  role: string;
+}
+
+export const PostAuthOrganizationUpdatememberroleResponseMemberTypeSchema =
+  z.object({
+    id: z.string(),
+    userId: z.string(),
+    organizationId: z.string(),
+    role: z.string(),
+  });
+
+export interface GetAuthOrganizationGetactivememberResponseType {
+  id: string;
+  userId: string;
+  organizationId: string;
+  role: string;
+}
+
+export const GetAuthOrganizationGetactivememberResponseTypeSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  organizationId: z.string(),
+  role: z.string(),
+});
+
+export interface PostAuthOrganizationCreateteamResponseType {
+  id: string;
+  name: string;
+  organizationId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const PostAuthOrganizationCreateteamResponseTypeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  organizationId: z.string(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export interface GetAuthOrganizationListteamsResponseItemType {
+  id: string;
+  name: string;
+  organizationId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const GetAuthOrganizationListteamsResponseItemTypeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  organizationId: z.string(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export interface PostAuthOrganizationUpdateteamResponseType {
+  id: string;
+  name: string;
+  organizationId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const PostAuthOrganizationUpdateteamResponseTypeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  organizationId: z.string(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
 export class OrganizationApi extends ApiClient {
   postAuthOrganizationCreate(
-    data: Record<string, any>
-  ): Promise<Record<string, any>> {
+    data: PostAuthOrganizationCreateRequestType
+  ): Promise<PostAuthOrganizationCreateResponseType> {
     return this.post(
       `/auth/organization/create`,
-      z.object({
-        id: z.string().optional(),
-        name: z.string().optional(),
-        slug: z.string().optional(),
-        logo: z.string().optional(),
-        createdAt: z.string().optional(),
-        metadata: z.string().optional(),
-      }),
-      {
-        body: data,
-        bodySchema: z.object({
-          name: z.string(),
-          slug: z.string(),
-          userId: z.string().optional(),
-          logo: z.string().optional(),
-          metadata: z.string().optional(),
-          keepCurrentActiveOrganization: z.string().optional(),
-        }),
-      }
+      PostAuthOrganizationCreateResponseTypeSchema,
+      { body: data, bodySchema: PostAuthOrganizationCreateRequestTypeSchema }
     );
   }
 
   postAuthOrganizationUpdate(
     data: Record<string, any>
-  ): Promise<Record<string, any>> {
+  ): Promise<PostAuthOrganizationUpdateResponseType> {
     return this.post(
       `/auth/organization/update`,
-      z.object({
-        id: z.string().optional(),
-        name: z.string().optional(),
-        slug: z.string().optional(),
-        logo: z.string().optional(),
-        createdAt: z.string().optional(),
-        metadata: z.string().optional(),
-      }),
+      PostAuthOrganizationUpdateResponseTypeSchema,
       {
         body: data,
         bodySchema: z.object({
@@ -63,17 +314,10 @@ export class OrganizationApi extends ApiClient {
 
   postAuthOrganizationSetactive(
     data: Record<string, any>
-  ): Promise<Record<string, any>> {
+  ): Promise<PostAuthOrganizationSetactiveResponseType> {
     return this.post(
       `/auth/organization/set-active`,
-      z.object({
-        id: z.string().optional(),
-        name: z.string().optional(),
-        slug: z.string().optional(),
-        logo: z.string().optional(),
-        createdAt: z.string().optional(),
-        metadata: z.string().optional(),
-      }),
+      PostAuthOrganizationSetactiveResponseTypeSchema,
       {
         body: data,
         bodySchema: z.object({
@@ -84,59 +328,31 @@ export class OrganizationApi extends ApiClient {
     );
   }
 
-  getAuthOrganizationGetfullorganization(): Promise<Record<string, any>> {
+  getAuthOrganizationGetfullorganization(): Promise<GetAuthOrganizationGetfullorganizationResponseType> {
     return this.get(
       `/auth/organization/get-full-organization`,
-      z.object({
-        id: z.string().optional(),
-        name: z.string().optional(),
-        slug: z.string().optional(),
-        logo: z.string().optional(),
-        createdAt: z.string().optional(),
-        metadata: z.string().optional(),
-      })
+      GetAuthOrganizationGetfullorganizationResponseTypeSchema
     );
   }
 
-  getAuthOrganizationList(): Promise<unknown> {
+  getAuthOrganizationList(): Promise<
+    GetAuthOrganizationListResponseItemType[]
+  > {
     return this.get(
       `/auth/organization/list`,
-      z.array(
-        z.object({
-          id: z.string().optional(),
-          name: z.string().optional(),
-          slug: z.string().optional(),
-          logo: z.string().optional(),
-          createdAt: z.string().optional(),
-          metadata: z.string().optional(),
-        })
-      )
+      z.array(GetAuthOrganizationListResponseItemTypeSchema)
     );
   }
 
   postAuthOrganizationInvitemember(
-    data: Record<string, any>
-  ): Promise<Record<string, any>> {
+    data: PostAuthOrganizationInvitememberRequestType
+  ): Promise<PostAuthOrganizationInvitememberResponseType> {
     return this.post(
       `/auth/organization/invite-member`,
-      z.object({
-        id: z.string(),
-        email: z.string(),
-        role: z.string(),
-        organizationId: z.string(),
-        inviterId: z.string(),
-        status: z.string(),
-        expiresAt: z.string(),
-      }),
+      PostAuthOrganizationInvitememberResponseTypeSchema,
       {
         body: data,
-        bodySchema: z.object({
-          email: z.string(),
-          role: z.string(),
-          organizationId: z.string().optional(),
-          resend: z.string().optional(),
-          teamId: z.string().optional(),
-        }),
+        bodySchema: PostAuthOrganizationInvitememberRequestTypeSchema,
       }
     );
   }
@@ -170,21 +386,12 @@ export class OrganizationApi extends ApiClient {
     );
   }
 
-  getAuthOrganizationGetinvitation(id?: string): Promise<Record<string, any>> {
+  getAuthOrganizationGetinvitation(
+    id?: string
+  ): Promise<GetAuthOrganizationGetinvitationResponseType> {
     return this.get(
       `/auth/organization/get-invitation`,
-      z.object({
-        id: z.string(),
-        email: z.string(),
-        role: z.string(),
-        organizationId: z.string(),
-        inviterId: z.string(),
-        status: z.string(),
-        expiresAt: z.string(),
-        organizationName: z.string(),
-        organizationSlug: z.string(),
-        inviterEmail: z.string(),
-      }),
+      GetAuthOrganizationGetinvitationResponseTypeSchema,
       { queryParams: { id } }
     );
   }
@@ -222,12 +429,7 @@ export class OrganizationApi extends ApiClient {
     return this.post(
       `/auth/organization/remove-member`,
       z.object({
-        member: z.object({
-          id: z.string(),
-          userId: z.string(),
-          organizationId: z.string(),
-          role: z.string(),
-        }),
+        member: PostAuthOrganizationRemovememberResponseMemberTypeSchema,
       }),
       {
         body: data,
@@ -240,38 +442,24 @@ export class OrganizationApi extends ApiClient {
   }
 
   postAuthOrganizationUpdatememberrole(
-    data: Record<string, any>
+    data: PostAuthOrganizationUpdatememberroleRequestType
   ): Promise<Record<string, any>> {
     return this.post(
       `/auth/organization/update-member-role`,
       z.object({
-        member: z.object({
-          id: z.string(),
-          userId: z.string(),
-          organizationId: z.string(),
-          role: z.string(),
-        }),
+        member: PostAuthOrganizationUpdatememberroleResponseMemberTypeSchema,
       }),
       {
         body: data,
-        bodySchema: z.object({
-          role: z.string(),
-          memberId: z.string(),
-          organizationId: z.string().optional(),
-        }),
+        bodySchema: PostAuthOrganizationUpdatememberroleRequestTypeSchema,
       }
     );
   }
 
-  getAuthOrganizationGetactivemember(): Promise<Record<string, any>> {
+  getAuthOrganizationGetactivemember(): Promise<GetAuthOrganizationGetactivememberResponseType> {
     return this.get(
       `/auth/organization/get-active-member`,
-      z.object({
-        id: z.string(),
-        userId: z.string(),
-        organizationId: z.string(),
-        role: z.string(),
-      })
+      GetAuthOrganizationGetactivememberResponseTypeSchema
     );
   }
 
@@ -290,16 +478,10 @@ export class OrganizationApi extends ApiClient {
 
   postAuthOrganizationCreateteam(
     data: Record<string, any>
-  ): Promise<Record<string, any>> {
+  ): Promise<PostAuthOrganizationCreateteamResponseType> {
     return this.post(
       `/auth/organization/create-team`,
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        organizationId: z.string(),
-        createdAt: z.string().datetime(),
-        updatedAt: z.string().datetime(),
-      }),
+      PostAuthOrganizationCreateteamResponseTypeSchema,
       {
         body: data,
         bodySchema: z.object({
@@ -310,18 +492,12 @@ export class OrganizationApi extends ApiClient {
     );
   }
 
-  getAuthOrganizationListteams(): Promise<unknown> {
+  getAuthOrganizationListteams(): Promise<
+    GetAuthOrganizationListteamsResponseItemType[]
+  > {
     return this.get(
       `/auth/organization/list-teams`,
-      z.array(
-        z.object({
-          id: z.string(),
-          name: z.string(),
-          organizationId: z.string(),
-          createdAt: z.string().datetime(),
-          updatedAt: z.string().datetime(),
-        })
-      )
+      z.array(GetAuthOrganizationListteamsResponseItemTypeSchema)
     );
   }
 
@@ -345,16 +521,10 @@ export class OrganizationApi extends ApiClient {
 
   postAuthOrganizationUpdateteam(
     data: Record<string, any>
-  ): Promise<Record<string, any>> {
+  ): Promise<PostAuthOrganizationUpdateteamResponseType> {
     return this.post(
       `/auth/organization/update-team`,
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        organizationId: z.string(),
-        createdAt: z.string().datetime(),
-        updatedAt: z.string().datetime(),
-      }),
+      PostAuthOrganizationUpdateteamResponseTypeSchema,
       {
         body: data,
         bodySchema: z.object({

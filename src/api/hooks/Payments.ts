@@ -347,7 +347,7 @@ export function usePutPaymentsCustomers(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data?: Record<string, any> }
+      { id: string | number; data?: PutPaymentsCustomersRequestType }
     >,
     'mutationFn'
   >
@@ -355,7 +355,7 @@ export function usePutPaymentsCustomers(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data?: Record<string, any>;
+      data?: PutPaymentsCustomersRequestType;
     }) => {
       return apiSDK.paymentsApi.putPaymentsCustomers(
         variables.id,
@@ -385,13 +385,13 @@ export function usePostPaymentsCustomers(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostPaymentsCustomersRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostPaymentsCustomersRequestType }) => {
       return apiSDK.paymentsApi.postPaymentsCustomers(variables.data);
     },
     ...mutationOptions,
@@ -427,13 +427,13 @@ export function usePostPaymentsCheckout(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostPaymentsCheckoutRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostPaymentsCheckoutRequestType }) => {
       return apiSDK.paymentsApi.postPaymentsCheckout(variables.data);
     },
     ...mutationOptions,

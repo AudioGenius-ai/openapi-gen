@@ -12,13 +12,15 @@ export function usePostNotificationsTokenRegister(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostNotificationsTokenRegisterRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data?: PostNotificationsTokenRegisterRequestType;
+    }) => {
       return apiSDK.notificationsApi.postNotificationsTokenRegister(
         variables.data
       );
@@ -44,7 +46,7 @@ export function useDeleteNotificationsToken(
 export function useGetNotifications(
   options?: { limit?: string; offset?: string; status?: string },
   queryOptions?: Omit<
-    UseQueryOptions<Record<string, any>, Error>,
+    UseQueryOptions<GetNotificationsResponseType, Error>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -98,13 +100,13 @@ export function usePostNotificationsSend(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostNotificationsSendRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostNotificationsSendRequestType }) => {
       return apiSDK.notificationsApi.postNotificationsSend(variables.data);
     },
     ...mutationOptions,
@@ -113,7 +115,7 @@ export function usePostNotificationsSend(
 
 export function useGetUsersMeNotificationsettings(
   queryOptions?: Omit<
-    UseQueryOptions<Record<string, any>, Error>,
+    UseQueryOptions<GetUsersMeNotificationsettingsResponseType, Error>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -127,15 +129,17 @@ export function useGetUsersMeNotificationsettings(
 export function usePutUsersMeNotificationsettings(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PutUsersMeNotificationsettingsResponseType,
       Error,
-      { data?: Record<string, any> }
+      { data?: PutUsersMeNotificationsettingsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data?: PutUsersMeNotificationsettingsRequestType;
+    }) => {
       return apiSDK.notificationsApi.putUsersMeNotificationsettings(
         variables.data
       );

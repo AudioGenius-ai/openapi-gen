@@ -52,13 +52,13 @@ export function usePostSupport(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostSupportRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostSupportRequestType }) => {
       return apiSDK.ticketsApi.postSupport(variables.data);
     },
     ...mutationOptions,
@@ -85,7 +85,7 @@ export function usePutSupport(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data: Record<string, any> }
+      { id: string | number; data: PutSupportRequestType }
     >,
     'mutationFn'
   >
@@ -93,7 +93,7 @@ export function usePutSupport(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data: Record<string, any>;
+      data: PutSupportRequestType;
     }) => {
       return apiSDK.ticketsApi.putSupport(variables.id, variables.data);
     },

@@ -30,13 +30,13 @@ export function usePostAdminAssets(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminAssetsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAdminAssetsRequestType }) => {
       return apiSDK.assetsApi.postAdminAssets(variables.data);
     },
     ...mutationOptions,
@@ -72,7 +72,7 @@ export function usePatchAdminAssets(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data?: Record<string, any> }
+      { id: string | number; data?: PatchAdminAssetsRequestType }
     >,
     'mutationFn'
   >
@@ -80,7 +80,7 @@ export function usePatchAdminAssets(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data?: Record<string, any>;
+      data?: PatchAdminAssetsRequestType;
     }) => {
       return apiSDK.assetsApi.patchAdminAssets(variables.id, variables.data);
     },

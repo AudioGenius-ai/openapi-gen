@@ -10,15 +10,17 @@ const apiSDK = new ApiSDK(process.env.REACT_APP_API_BASE_URL || '');
 export function usePostAdminPaymentsAppstoreSync(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsAppstoreSyncResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreSyncRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreSyncRequestType;
+    }) => {
       return apiSDK.syncApi.postAdminPaymentsAppstoreSync(variables.data);
     },
     ...mutationOptions,
@@ -28,7 +30,7 @@ export function usePostAdminPaymentsAppstoreSync(
 export function usePostAdminPaymentsProductsSync(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsProductsSyncResponseType,
       Error,
       { data: Record<string, any> }
     >,

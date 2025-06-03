@@ -10,15 +10,17 @@ const apiSDK = new ApiSDK(process.env.REACT_APP_API_BASE_URL || '');
 export function usePostAdminPaymentsAppstoreWebhookValidate(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsAppstoreWebhookValidateResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreWebhookValidateRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreWebhookValidateRequestType;
+    }) => {
       return apiSDK.webhooksApi.postAdminPaymentsAppstoreWebhookValidate(
         variables.data
       );

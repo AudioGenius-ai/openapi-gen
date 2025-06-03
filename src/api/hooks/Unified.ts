@@ -46,13 +46,13 @@ export function usePostAdminPaymentsProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsProductsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAdminPaymentsProductsRequestType }) => {
       return apiSDK.unifiedApi.postAdminPaymentsProducts(variables.data);
     },
     ...mutationOptions,
@@ -79,7 +79,7 @@ export function usePutAdminPaymentsProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { productId: string | number; data: Record<string, any> }
+      { productId: string | number; data: PutAdminPaymentsProductsRequestType }
     >,
     'mutationFn'
   >
@@ -87,7 +87,7 @@ export function usePutAdminPaymentsProducts(
   return useMutation({
     mutationFn: (variables: {
       productId: string | number;
-      data: Record<string, any>;
+      data: PutAdminPaymentsProductsRequestType;
     }) => {
       return apiSDK.unifiedApi.putAdminPaymentsProducts(
         variables.productId,

@@ -1,28 +1,107 @@
 import { ApiClient } from '../ApiClient';
 import { z } from 'zod';
 
+export interface GetAttachmentsResponseDataItemType {
+  id: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const GetAttachmentsResponseDataItemTypeSchema = z.object({
+  id: z.string().uuid(),
+  filename: z.string().min(1),
+  contentType: z.string().min(1),
+  size: z.number().int().min(0),
+  url: z.string().url(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export interface GetAttachmentsResponseMetaType {
+  total: number;
+  pages: number;
+  page: number;
+  limit: number;
+}
+
+export const GetAttachmentsResponseMetaTypeSchema = z.object({
+  total: z.number(),
+  pages: z.number(),
+  page: z.number(),
+  limit: z.number(),
+});
+
+export interface PostAttachmentsResponseAttachmentType {
+  id: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const PostAttachmentsResponseAttachmentTypeSchema = z.object({
+  id: z.string().uuid(),
+  filename: z.string().min(1),
+  contentType: z.string().min(1),
+  size: z.number().int().min(0),
+  url: z.string().url(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export interface GetAttachmentsResponseAttachmentType {
+  id: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const GetAttachmentsResponseAttachmentTypeSchema = z.object({
+  id: z.string().uuid(),
+  filename: z.string().min(1),
+  contentType: z.string().min(1),
+  size: z.number().int().min(0),
+  url: z.string().url(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export interface PatchAttachmentsResponseAttachmentType {
+  id: string;
+  filename: string;
+  contentType: string;
+  size: number;
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const PatchAttachmentsResponseAttachmentTypeSchema = z.object({
+  id: z.string().uuid(),
+  filename: z.string().min(1),
+  contentType: z.string().min(1),
+  size: z.number().int().min(0),
+  url: z.string().url(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
 export class AttachmentsApi extends ApiClient {
   getAttachments(page?: string, limit?: string): Promise<Record<string, any>> {
     return this.get(
       `/attachments`,
       z.object({
-        data: z.array(
-          z.object({
-            id: z.string().uuid(),
-            filename: z.string().min(1),
-            contentType: z.string().min(1),
-            size: z.number().int().min(0),
-            url: z.string().url(),
-            createdAt: z.string().datetime(),
-            updatedAt: z.string().datetime(),
-          })
-        ),
-        meta: z.object({
-          total: z.number(),
-          pages: z.number(),
-          page: z.number(),
-          limit: z.number(),
-        }),
+        data: z.array(GetAttachmentsResponseDataItemTypeSchema),
+        meta: GetAttachmentsResponseMetaTypeSchema,
       }),
       { queryParams: { page, limit } }
     );
@@ -32,15 +111,7 @@ export class AttachmentsApi extends ApiClient {
     return this.post(
       `/attachments`,
       z.object({
-        attachment: z.object({
-          id: z.string().uuid(),
-          filename: z.string().min(1),
-          contentType: z.string().min(1),
-          size: z.number().int().min(0),
-          url: z.string().url(),
-          createdAt: z.string().datetime(),
-          updatedAt: z.string().datetime(),
-        }),
+        attachment: PostAttachmentsResponseAttachmentTypeSchema,
       })
     );
   }
@@ -49,15 +120,7 @@ export class AttachmentsApi extends ApiClient {
     return this.get(
       `/attachments/${id}`,
       z.object({
-        attachment: z.object({
-          id: z.string().uuid(),
-          filename: z.string().min(1),
-          contentType: z.string().min(1),
-          size: z.number().int().min(0),
-          url: z.string().url(),
-          createdAt: z.string().datetime(),
-          updatedAt: z.string().datetime(),
-        }),
+        attachment: GetAttachmentsResponseAttachmentTypeSchema,
       })
     );
   }
@@ -69,15 +132,7 @@ export class AttachmentsApi extends ApiClient {
     return this.patch(
       `/attachments/${id}`,
       z.object({
-        attachment: z.object({
-          id: z.string().uuid(),
-          filename: z.string().min(1),
-          contentType: z.string().min(1),
-          size: z.number().int().min(0),
-          url: z.string().url(),
-          createdAt: z.string().datetime(),
-          updatedAt: z.string().datetime(),
-        }),
+        attachment: PatchAttachmentsResponseAttachmentTypeSchema,
       }),
       {
         body: data,

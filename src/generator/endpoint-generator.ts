@@ -7,6 +7,11 @@ export interface GeneratedEndpoint {
   operations: ParsedOperation[];
 }
 
+export interface InlineType {
+  name: string;
+  definition: string;
+}
+
 export interface MethodParameter {
   name: string;
   type: string;
@@ -25,9 +30,14 @@ export interface GeneratedMethod {
 }
 
 export class EndpointGenerator {
+  private inlineTypes: Map<string, InlineType> = new Map();
+  private inlineTypeCounter = 0;
+
   constructor(private parser: OpenAPIParser) {}
 
   generateEndpointClasses(operations: ParsedOperation[], tag: string): GeneratedEndpoint {
+    this.inlineTypes.clear(); // Clear inline types for each class
+    
     const className = this.parser.generateClassName(tag);
     const tagOperations = operations.filter(op => {
       if (!op.tags || op.tags.length === 0) {
@@ -39,7 +49,14 @@ export class EndpointGenerator {
     const methods = tagOperations.map(operation => this.generateMethod(operation));
     const imports = this.generateImports(methods);
     
+    // Generate inline type definitions
+    const inlineTypeDefinitions = Array.from(this.inlineTypes.values())
+      .map(type => type.definition)
+      .join('\n\n');
+    
     const content = `${imports}
+
+${inlineTypeDefinitions}
 
 export class ${className} extends ApiClient {
 ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
@@ -167,12 +184,13 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
 
   private getResponseSchema(operation: ParsedOperation): string {
     const responses = operation.responses;
+    const methodName = this.generateMethodName(operation);
     
     // Try to get 200, 201, or first successful response
     for (const statusCode of ['200', '201', '204']) {
       const response = responses[statusCode] as OpenAPIV3.ResponseObject;
       if (response?.content?.['application/json']?.schema) {
-        return this.getSchemaReference(response.content['application/json'].schema);
+        return this.getSchemaReference(response.content['application/json'].schema, `${this.toPascalCase(methodName)}Response`);
       }
     }
 
@@ -181,7 +199,7 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
       if (statusCode.startsWith('2') && typeof response === 'object') {
         const responseObj = response as OpenAPIV3.ResponseObject;
         if (responseObj.content?.['application/json']?.schema) {
-          return this.getSchemaReference(responseObj.content['application/json'].schema);
+          return this.getSchemaReference(responseObj.content['application/json'].schema, `${this.toPascalCase(methodName)}Response`);
         }
       }
     }
@@ -194,23 +212,24 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
     
     const content = operation.requestBody.content;
     if (content?.['application/json']?.schema) {
-      return this.getSchemaReference(content['application/json'].schema);
+      const methodName = this.generateMethodName(operation);
+      return this.getSchemaReference(content['application/json'].schema, `${this.toPascalCase(methodName)}Request`);
     }
     
     return undefined;
   }
 
-  private getSchemaReference(schema: any): string {
+  private getSchemaReference(schema: any, context?: string): string {
     if (schema.$ref) {
       const refName = schema.$ref.split('/').pop();
       return `${refName}Schema`;
     }
     
     // Convert inline schemas to Zod schemas
-    return this.convertInlineToZodSchema(schema);
+    return this.convertInlineToZodSchema(schema, context);
   }
 
-  private convertInlineToZodSchema(schema: any): string {
+  private convertInlineToZodSchema(schema: any, context?: string): string {
     // Check for enum first
     if (schema.enum) {
       return this.handleInlineEnumSchema(schema);
@@ -226,9 +245,9 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
         case 'boolean':
           return 'z.boolean()';
         case 'array':
-          return this.handleInlineArraySchema(schema);
+          return this.handleInlineArraySchema(schema, context);
         case 'object':
-          return this.handleInlineObjectSchema(schema);
+          return this.handleInlineObjectSchema(schema, context);
         case 'date':
           // Handle invalid OpenAPI type "date" as string with date format
           return 'z.string()';
@@ -239,13 +258,13 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
 
     // Handle composition schemas
     if (schema.oneOf) {
-      return this.handleInlineOneOfSchema(schema);
+      return this.handleInlineOneOfSchema(schema, context);
     }
     if (schema.anyOf) {
-      return this.handleInlineAnyOfSchema(schema);
+      return this.handleInlineAnyOfSchema(schema, context);
     }
     if (schema.allOf) {
-      return this.handleInlineAllOfSchema(schema);
+      return this.handleInlineAllOfSchema(schema, context);
     }
     
     return 'z.unknown()';
@@ -300,12 +319,13 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
     return zodNumber;
   }
 
-  private handleInlineArraySchema(schema: any): string {
+  private handleInlineArraySchema(schema: any, context?: string): string {
     if (!schema.items) {
       return 'z.array(z.unknown())';
     }
 
-    const itemSchema = this.getSchemaReference(schema.items);
+    const itemContext = context ? `${context}Item` : undefined;
+    const itemSchema = this.getSchemaReference(schema.items, itemContext);
     let zodArray = `z.array(${itemSchema})`;
 
     if (schema.minItems !== undefined) {
@@ -318,15 +338,20 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
     return zodArray;
   }
 
-  private handleInlineObjectSchema(schema: any): string {
+  private handleInlineObjectSchema(schema: any, context?: string): string {
     if (!schema.properties) {
       if (schema.additionalProperties) {
         const additionalSchema = typeof schema.additionalProperties === 'object' 
-          ? this.getSchemaReference(schema.additionalProperties)
+          ? this.getSchemaReference(schema.additionalProperties, context)
           : 'z.unknown()';
         return `z.record(${additionalSchema})`;
       }
       return 'z.object({})';
+    }
+
+    // Generate a TypeScript interface for complex objects
+    if (context && Object.keys(schema.properties).length > 2) {
+      return this.generateInlineTypeForObject(schema, context);
     }
 
     const properties: string[] = [];
@@ -334,7 +359,8 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
 
     Object.entries(schema.properties).forEach(([propName, propSchema]) => {
       const isRequired = required.includes(propName);
-      const zodPropSchema = this.getSchemaReference(propSchema);
+      const propContext = context ? `${context}${this.toPascalCase(propName)}` : undefined;
+      const zodPropSchema = this.getSchemaReference(propSchema, propContext);
       
       const finalSchema = isRequired ? zodPropSchema : `${zodPropSchema}.optional()`;
       properties.push(`  ${propName}: ${finalSchema}`);
@@ -347,6 +373,54 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
     }
 
     return objectSchema;
+  }
+
+  private generateInlineTypeForObject(schema: any, context: string): string {
+    const typeName = `${context}Type`;
+    
+    // Check if we already generated this type
+    if (this.inlineTypes.has(typeName)) {
+      return `${typeName}Schema`;
+    }
+
+    const properties: string[] = [];
+    const tsProperties: string[] = [];
+    const required = schema.required || [];
+
+    Object.entries(schema.properties).forEach(([propName, propSchema]) => {
+      const isRequired = required.includes(propName);
+      const propContext = `${context}${this.toPascalCase(propName)}`;
+      const zodPropSchema = this.getSchemaReference(propSchema, propContext);
+      
+      // Generate Zod schema property
+      const finalSchema = isRequired ? zodPropSchema : `${zodPropSchema}.optional()`;
+      properties.push(`  ${propName}: ${finalSchema}`);
+      
+      // Generate TypeScript interface property
+      const tsType = this.zodSchemaToTsType(zodPropSchema);
+      const optional = isRequired ? '' : '?';
+      tsProperties.push(`  ${propName}${optional}: ${tsType};`);
+    });
+
+    let objectSchema = `z.object({\n${properties.join(',\n')}\n})`;
+    if (schema.additionalProperties === false) {
+      objectSchema += '.strict()';
+    }
+
+    // Generate TypeScript interface
+    const interfaceDefinition = `export interface ${typeName} {
+${tsProperties.join('\n')}
+}
+
+export const ${typeName}Schema = ${objectSchema};`;
+
+    // Store the inline type
+    this.inlineTypes.set(typeName, {
+      name: typeName,
+      definition: interfaceDefinition
+    });
+
+    return `${typeName}Schema`;
   }
 
   private handleInlineEnumSchema(schema: any): string {
@@ -364,37 +438,37 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
     return `z.enum([${enumValues}])`;
   }
 
-  private handleInlineOneOfSchema(schema: any): string {
+  private handleInlineOneOfSchema(schema: any, context?: string): string {
     if (!schema.oneOf || schema.oneOf.length === 0) {
       return 'z.unknown()';
     }
 
-    const unionSchemas = schema.oneOf.map((subSchema: any) => 
-      this.getSchemaReference(subSchema)
+    const unionSchemas = schema.oneOf.map((subSchema: any, index: number) => 
+      this.getSchemaReference(subSchema, context ? `${context}Option${index + 1}` : undefined)
     );
 
     return `z.union([${unionSchemas.join(', ')}])`;
   }
 
-  private handleInlineAnyOfSchema(schema: any): string {
+  private handleInlineAnyOfSchema(schema: any, context?: string): string {
     if (!schema.anyOf || schema.anyOf.length === 0) {
       return 'z.unknown()';
     }
 
-    const unionSchemas = schema.anyOf.map((subSchema: any) => 
-      this.getSchemaReference(subSchema)
+    const unionSchemas = schema.anyOf.map((subSchema: any, index: number) => 
+      this.getSchemaReference(subSchema, context ? `${context}Option${index + 1}` : undefined)
     );
 
     return `z.union([${unionSchemas.join(', ')}])`;
   }
 
-  private handleInlineAllOfSchema(schema: any): string {
+  private handleInlineAllOfSchema(schema: any, context?: string): string {
     if (!schema.allOf || schema.allOf.length === 0) {
       return 'z.unknown()';
     }
 
-    const intersectionSchemas = schema.allOf.map((subSchema: any) => 
-      this.getSchemaReference(subSchema)
+    const intersectionSchemas = schema.allOf.map((subSchema: any, index: number) => 
+      this.getSchemaReference(subSchema, context ? `${context}Intersection${index + 1}` : undefined)
     );
 
     if (intersectionSchemas.length === 1) {
@@ -421,6 +495,16 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
   }
   
   private zodSchemaToTsType(zodSchema: string): string {
+    // Check for inline type references first
+    if (zodSchema.endsWith('Schema')) {
+      const typeName = zodSchema.replace('Schema', '');
+      // Check if this is an inline type we generated
+      if (this.inlineTypes.has(typeName)) {
+        return typeName;
+      }
+      return typeName;
+    }
+    
     // Basic type mappings
     if (zodSchema === 'z.string()' || zodSchema.startsWith('z.string().')) return 'string';
     if (zodSchema === 'z.number()' || zodSchema.startsWith('z.number().')) return 'number';
@@ -573,15 +657,21 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
       if (method.responseSchema !== 'z.unknown()' && !method.responseSchema.startsWith('z.')) {
         const schemaName = method.responseSchema;
         const typeName = schemaName.replace('Schema', '');
-        schemas.add(schemaName);
-        schemas.add(typeName);
+        // Only import from models if it's not an inline type
+        if (!this.inlineTypes.has(typeName)) {
+          schemas.add(schemaName);
+          schemas.add(typeName);
+        }
       }
       
       if (method.requestBodySchema && !method.requestBodySchema.startsWith('z.')) {
         const schemaName = method.requestBodySchema;
         const typeName = schemaName.replace('Schema', '');
-        schemas.add(schemaName);
-        schemas.add(typeName);
+        // Only import from models if it's not an inline type
+        if (!this.inlineTypes.has(typeName)) {
+          schemas.add(schemaName);
+          schemas.add(typeName);
+        }
       }
     });
 

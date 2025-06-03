@@ -25,13 +25,15 @@ export function usePostAdminPaymentsAppstoreGoogleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreGoogleProductsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreGoogleProductsRequestType;
+    }) => {
       return apiSDK.googleApi.postAdminPaymentsAppstoreGoogleProducts(
         variables.data
       );
@@ -45,7 +47,10 @@ export function usePutAdminPaymentsAppstoreGoogleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { sku: string | number; data: Record<string, any> }
+      {
+        sku: string | number;
+        data: PutAdminPaymentsAppstoreGoogleProductsRequestType;
+      }
     >,
     'mutationFn'
   >
@@ -53,7 +58,7 @@ export function usePutAdminPaymentsAppstoreGoogleProducts(
   return useMutation({
     mutationFn: (variables: {
       sku: string | number;
-      data: Record<string, any>;
+      data: PutAdminPaymentsAppstoreGoogleProductsRequestType;
     }) => {
       return apiSDK.googleApi.putAdminPaymentsAppstoreGoogleProducts(
         variables.sku,

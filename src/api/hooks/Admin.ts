@@ -30,13 +30,13 @@ export function useCreateUser(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: CreateUserRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: CreateUserRequestType }) => {
       return apiSDK.adminApi.createUser(variables.data);
     },
     ...mutationOptions,
@@ -57,7 +57,7 @@ export function useListUsers(
     filterOperator?: string;
   },
   queryOptions?: Omit<
-    UseQueryOptions<Record<string, any>, Error>,
+    UseQueryOptions<ListUsersResponseType, Error>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -133,13 +133,13 @@ export function useBanUser(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: BanUserRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: BanUserRequestType }) => {
       return apiSDK.adminApi.banUser(variables.data);
     },
     ...mutationOptions,
@@ -286,13 +286,13 @@ export function usePostAdminAssets(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminAssetsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAdminAssetsRequestType }) => {
       return apiSDK.adminApi.postAdminAssets(variables.data);
     },
     ...mutationOptions,
@@ -328,7 +328,7 @@ export function usePatchAdminAssets(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data?: Record<string, any> }
+      { id: string | number; data?: PatchAdminAssetsRequestType }
     >,
     'mutationFn'
   >
@@ -336,7 +336,7 @@ export function usePatchAdminAssets(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data?: Record<string, any>;
+      data?: PatchAdminAssetsRequestType;
     }) => {
       return apiSDK.adminApi.patchAdminAssets(variables.id, variables.data);
     },
@@ -419,7 +419,7 @@ export function useGetAdminBlogPosts(
     page?: number;
   },
   queryOptions?: Omit<
-    UseQueryOptions<Record<string, any>, Error>,
+    UseQueryOptions<GetAdminBlogPostsResponseType, Error>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -449,13 +449,13 @@ export function usePostAdminBlogPosts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostAdminBlogPostsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostAdminBlogPostsRequestType }) => {
       return apiSDK.adminApi.postAdminBlogPosts(variables.data);
     },
     ...mutationOptions,
@@ -482,7 +482,7 @@ export function usePatchAdminBlogPosts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data?: Record<string, any> }
+      { id: string | number; data?: PatchAdminBlogPostsRequestType }
     >,
     'mutationFn'
   >
@@ -490,7 +490,7 @@ export function usePatchAdminBlogPosts(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data?: Record<string, any>;
+      data?: PatchAdminBlogPostsRequestType;
     }) => {
       return apiSDK.adminApi.patchAdminBlogPosts(variables.id, variables.data);
     },
@@ -515,15 +515,17 @@ export function useDeleteAdminBlogPosts(
 export function usePostAdminBlogPostsAutosave(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminBlogPostsAutosaveResponseType,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostAdminBlogPostsAutosaveRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data?: PostAdminBlogPostsAutosaveRequestType;
+    }) => {
       return apiSDK.adminApi.postAdminBlogPostsAutosave(variables.data);
     },
     ...mutationOptions,
@@ -550,13 +552,13 @@ export function usePostAdminBlogCategories(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data?: Record<string, any> }
+      { data?: PostAdminBlogCategoriesRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data?: Record<string, any> }) => {
+    mutationFn: (variables: { data?: PostAdminBlogCategoriesRequestType }) => {
       return apiSDK.adminApi.postAdminBlogCategories(variables.data);
     },
     ...mutationOptions,
@@ -568,7 +570,7 @@ export function usePatchAdminBlogCategories(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data?: Record<string, any> }
+      { id: string | number; data?: PatchAdminBlogCategoriesRequestType }
     >,
     'mutationFn'
   >
@@ -576,7 +578,7 @@ export function usePatchAdminBlogCategories(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data?: Record<string, any>;
+      data?: PatchAdminBlogCategoriesRequestType;
     }) => {
       return apiSDK.adminApi.patchAdminBlogCategories(
         variables.id,
@@ -770,13 +772,15 @@ export function usePostAdminPaymentsAppstoreAppleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreAppleProductsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreAppleProductsRequestType;
+    }) => {
       return apiSDK.adminApi.postAdminPaymentsAppstoreAppleProducts(
         variables.data
       );
@@ -790,7 +794,10 @@ export function usePutAdminPaymentsAppstoreAppleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { productId: string | number; data: Record<string, any> }
+      {
+        productId: string | number;
+        data: PutAdminPaymentsAppstoreAppleProductsRequestType;
+      }
     >,
     'mutationFn'
   >
@@ -798,7 +805,7 @@ export function usePutAdminPaymentsAppstoreAppleProducts(
   return useMutation({
     mutationFn: (variables: {
       productId: string | number;
-      data: Record<string, any>;
+      data: PutAdminPaymentsAppstoreAppleProductsRequestType;
     }) => {
       return apiSDK.adminApi.putAdminPaymentsAppstoreAppleProducts(
         variables.productId,
@@ -827,13 +834,15 @@ export function usePostAdminPaymentsAppstoreGoogleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreGoogleProductsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreGoogleProductsRequestType;
+    }) => {
       return apiSDK.adminApi.postAdminPaymentsAppstoreGoogleProducts(
         variables.data
       );
@@ -847,7 +856,10 @@ export function usePutAdminPaymentsAppstoreGoogleProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { sku: string | number; data: Record<string, any> }
+      {
+        sku: string | number;
+        data: PutAdminPaymentsAppstoreGoogleProductsRequestType;
+      }
     >,
     'mutationFn'
   >
@@ -855,7 +867,7 @@ export function usePutAdminPaymentsAppstoreGoogleProducts(
   return useMutation({
     mutationFn: (variables: {
       sku: string | number;
-      data: Record<string, any>;
+      data: PutAdminPaymentsAppstoreGoogleProductsRequestType;
     }) => {
       return apiSDK.adminApi.putAdminPaymentsAppstoreGoogleProducts(
         variables.sku,
@@ -912,7 +924,7 @@ export function useGetAdminPaymentsAppstoreReviews(
 export function usePostAdminPaymentsAppstoreReviewsRespond(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsAppstoreReviewsRespondResponseType,
       Error,
       { data: Record<string, any> }
     >,
@@ -932,15 +944,17 @@ export function usePostAdminPaymentsAppstoreReviewsRespond(
 export function usePostAdminPaymentsAppstoreSync(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsAppstoreSyncResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreSyncRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreSyncRequestType;
+    }) => {
       return apiSDK.adminApi.postAdminPaymentsAppstoreSync(variables.data);
     },
     ...mutationOptions,
@@ -950,15 +964,17 @@ export function usePostAdminPaymentsAppstoreSync(
 export function usePostAdminPaymentsAppstoreWebhookValidate(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsAppstoreWebhookValidateResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsAppstoreWebhookValidateRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAdminPaymentsAppstoreWebhookValidateRequestType;
+    }) => {
       return apiSDK.adminApi.postAdminPaymentsAppstoreWebhookValidate(
         variables.data
       );
@@ -1006,13 +1022,13 @@ export function usePostAdminPaymentsProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAdminPaymentsProductsRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: { data: PostAdminPaymentsProductsRequestType }) => {
       return apiSDK.adminApi.postAdminPaymentsProducts(variables.data);
     },
     ...mutationOptions,
@@ -1039,7 +1055,7 @@ export function usePutAdminPaymentsProducts(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { productId: string | number; data: Record<string, any> }
+      { productId: string | number; data: PutAdminPaymentsProductsRequestType }
     >,
     'mutationFn'
   >
@@ -1047,7 +1063,7 @@ export function usePutAdminPaymentsProducts(
   return useMutation({
     mutationFn: (variables: {
       productId: string | number;
-      data: Record<string, any>;
+      data: PutAdminPaymentsProductsRequestType;
     }) => {
       return apiSDK.adminApi.putAdminPaymentsProducts(
         variables.productId,
@@ -1079,7 +1095,7 @@ export function useDeleteAdminPaymentsProducts(
 export function usePostAdminPaymentsProductsSync(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAdminPaymentsProductsSyncResponseType,
       Error,
       { data: Record<string, any> }
     >,
@@ -1387,7 +1403,7 @@ export function usePatchAdminUsers(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { id: string | number; data: Record<string, any> }
+      { id: string | number; data: PatchAdminUsersRequestType }
     >,
     'mutationFn'
   >
@@ -1395,7 +1411,7 @@ export function usePatchAdminUsers(
   return useMutation({
     mutationFn: (variables: {
       id: string | number;
-      data: Record<string, any>;
+      data: PatchAdminUsersRequestType;
     }) => {
       return apiSDK.adminApi.patchAdminUsers(variables.id, variables.data);
     },

@@ -1,6 +1,155 @@
 import { ApiClient } from '../ApiClient';
 import { z } from 'zod';
 
+export interface GetOrganizationsInvitationsResponseInvitationsItemType {
+  id: string;
+  email: string;
+  status: 'pending';
+  accepted;
+  rejected;
+  canceled;
+  declined;
+  expired;
+  role: string;
+  organizationId: string;
+  inviterId: string;
+  createdAt?: string;
+  expiresAt?: string;
+  teamId?: string;
+}
+
+export const GetOrganizationsInvitationsResponseInvitationsItemTypeSchema =
+  z.object({
+    id: z.string(),
+    email: z.string().email(),
+    status: z.enum([
+      'pending',
+      'accepted',
+      'rejected',
+      'canceled',
+      'declined',
+      'expired',
+    ]),
+    role: z.string(),
+    organizationId: z.string(),
+    inviterId: z.string(),
+    createdAt: z.string().optional(),
+    expiresAt: z.string().optional(),
+    teamId: z.string().optional(),
+  });
+
+export interface PostOrganizationsInvitationsResponseInvitationType {
+  id: string;
+  email: string;
+  status: 'pending';
+  accepted;
+  rejected;
+  canceled;
+  declined;
+  expired;
+  role: string;
+  organizationId: string;
+  inviterId: string;
+  createdAt?: string;
+  expiresAt?: string;
+  teamId?: string;
+}
+
+export const PostOrganizationsInvitationsResponseInvitationTypeSchema =
+  z.object({
+    id: z.string(),
+    email: z.string().email(),
+    status: z.enum([
+      'pending',
+      'accepted',
+      'rejected',
+      'canceled',
+      'declined',
+      'expired',
+    ]),
+    role: z.string(),
+    organizationId: z.string(),
+    inviterId: z.string(),
+    createdAt: z.string().optional(),
+    expiresAt: z.string().optional(),
+    teamId: z.string().optional(),
+  });
+
+export interface PostOrganizationsInvitationsAcceptResponseInvitationType {
+  id: string;
+  email: string;
+  status: 'pending';
+  accepted;
+  rejected;
+  canceled;
+  declined;
+  expired;
+  role: string;
+  organizationId: string;
+  inviterId: string;
+  createdAt?: string;
+  expiresAt?: string;
+  teamId?: string;
+}
+
+export const PostOrganizationsInvitationsAcceptResponseInvitationTypeSchema =
+  z.object({
+    id: z.string(),
+    email: z.string().email(),
+    status: z.enum([
+      'pending',
+      'accepted',
+      'rejected',
+      'canceled',
+      'declined',
+      'expired',
+    ]),
+    role: z.string(),
+    organizationId: z.string(),
+    inviterId: z.string(),
+    createdAt: z.string().optional(),
+    expiresAt: z.string().optional(),
+    teamId: z.string().optional(),
+  });
+
+export interface PutOrganizationsInvitationsResponseInvitationType {
+  id: string;
+  email: string;
+  status: 'pending';
+  accepted;
+  rejected;
+  canceled;
+  declined;
+  expired;
+  role: string;
+  organizationId: string;
+  inviterId: string;
+  createdAt?: string;
+  expiresAt?: string;
+  teamId?: string;
+}
+
+export const PutOrganizationsInvitationsResponseInvitationTypeSchema = z.object(
+  {
+    id: z.string(),
+    email: z.string().email(),
+    status: z.enum([
+      'pending',
+      'accepted',
+      'rejected',
+      'canceled',
+      'declined',
+      'expired',
+    ]),
+    role: z.string(),
+    organizationId: z.string(),
+    inviterId: z.string(),
+    createdAt: z.string().optional(),
+    expiresAt: z.string().optional(),
+    teamId: z.string().optional(),
+  }
+);
+
 export class OrganizationInvitationsApi extends ApiClient {
   getOrganizationsInvitations(
     id: string | number
@@ -9,24 +158,7 @@ export class OrganizationInvitationsApi extends ApiClient {
       `/organizations/${id}/invitations`,
       z.object({
         invitations: z.array(
-          z.object({
-            id: z.string(),
-            email: z.string().email(),
-            status: z.enum([
-              'pending',
-              'accepted',
-              'rejected',
-              'canceled',
-              'declined',
-              'expired',
-            ]),
-            role: z.string(),
-            organizationId: z.string(),
-            inviterId: z.string(),
-            createdAt: z.string().optional(),
-            expiresAt: z.string().optional(),
-            teamId: z.string().optional(),
-          })
+          GetOrganizationsInvitationsResponseInvitationsItemTypeSchema
         ),
       })
     );
@@ -39,24 +171,7 @@ export class OrganizationInvitationsApi extends ApiClient {
     return this.post(
       `/organizations/${id}/invitations`,
       z.object({
-        invitation: z.object({
-          id: z.string(),
-          email: z.string().email(),
-          status: z.enum([
-            'pending',
-            'accepted',
-            'rejected',
-            'canceled',
-            'declined',
-            'expired',
-          ]),
-          role: z.string(),
-          organizationId: z.string(),
-          inviterId: z.string(),
-          createdAt: z.string().optional(),
-          expiresAt: z.string().optional(),
-          teamId: z.string().optional(),
-        }),
+        invitation: PostOrganizationsInvitationsResponseInvitationTypeSchema,
       }),
       {
         body: data,
@@ -75,24 +190,8 @@ export class OrganizationInvitationsApi extends ApiClient {
     return this.post(
       `/organizations/${id}/invitations/${invitationId}/accept`,
       z.object({
-        invitation: z.object({
-          id: z.string(),
-          email: z.string().email(),
-          status: z.enum([
-            'pending',
-            'accepted',
-            'rejected',
-            'canceled',
-            'declined',
-            'expired',
-          ]),
-          role: z.string(),
-          organizationId: z.string(),
-          inviterId: z.string(),
-          createdAt: z.string().optional(),
-          expiresAt: z.string().optional(),
-          teamId: z.string().optional(),
-        }),
+        invitation:
+          PostOrganizationsInvitationsAcceptResponseInvitationTypeSchema,
       })
     );
   }
@@ -105,24 +204,7 @@ export class OrganizationInvitationsApi extends ApiClient {
     return this.put(
       `/organizations/${id}/invitations/${invitationId}`,
       z.object({
-        invitation: z.object({
-          id: z.string(),
-          email: z.string().email(),
-          status: z.enum([
-            'pending',
-            'accepted',
-            'rejected',
-            'canceled',
-            'declined',
-            'expired',
-          ]),
-          role: z.string(),
-          organizationId: z.string(),
-          inviterId: z.string(),
-          createdAt: z.string().optional(),
-          expiresAt: z.string().optional(),
-          teamId: z.string().optional(),
-        }),
+        invitation: PutOrganizationsInvitationsResponseInvitationTypeSchema,
       }),
       {
         body: data,

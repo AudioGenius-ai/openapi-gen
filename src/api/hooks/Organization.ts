@@ -10,15 +10,17 @@ const apiSDK = new ApiSDK(process.env.REACT_APP_API_BASE_URL || '');
 export function usePostAuthOrganizationCreate(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthOrganizationCreateResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthOrganizationCreateRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAuthOrganizationCreateRequestType;
+    }) => {
       return apiSDK.organizationApi.postAuthOrganizationCreate(variables.data);
     },
     ...mutationOptions,
@@ -28,7 +30,7 @@ export function usePostAuthOrganizationCreate(
 export function usePostAuthOrganizationUpdate(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthOrganizationUpdateResponseType,
       Error,
       { data: Record<string, any> }
     >,
@@ -60,7 +62,7 @@ export function usePostAuthOrganizationDelete(
 export function usePostAuthOrganizationSetactive(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthOrganizationSetactiveResponseType,
       Error,
       { data: Record<string, any> }
     >,
@@ -79,7 +81,7 @@ export function usePostAuthOrganizationSetactive(
 
 export function useGetAuthOrganizationGetfullorganization(
   queryOptions?: Omit<
-    UseQueryOptions<Record<string, any>, Error>,
+    UseQueryOptions<GetAuthOrganizationGetfullorganizationResponseType, Error>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -92,7 +94,10 @@ export function useGetAuthOrganizationGetfullorganization(
 }
 
 export function useGetAuthOrganizationList(
-  queryOptions?: Omit<UseQueryOptions<unknown, Error>, 'queryKey' | 'queryFn'>
+  queryOptions?: Omit<
+    UseQueryOptions<GetAuthOrganizationListResponseItemType[], Error>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery({
     queryKey: ['getAuthOrganizationList'],
@@ -104,15 +109,17 @@ export function useGetAuthOrganizationList(
 export function usePostAuthOrganizationInvitemember(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthOrganizationInvitememberResponseType,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthOrganizationInvitememberRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAuthOrganizationInvitememberRequestType;
+    }) => {
       return apiSDK.organizationApi.postAuthOrganizationInvitemember(
         variables.data
       );
@@ -160,7 +167,7 @@ export function usePostAuthOrganizationAcceptinvitation(
 export function useGetAuthOrganizationGetinvitation(
   options?: { id?: string },
   queryOptions?: Omit<
-    UseQueryOptions<Record<string, any>, Error>,
+    UseQueryOptions<GetAuthOrganizationGetinvitationResponseType, Error>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -233,13 +240,15 @@ export function usePostAuthOrganizationUpdatememberrole(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthOrganizationUpdatememberroleRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAuthOrganizationUpdatememberroleRequestType;
+    }) => {
       return apiSDK.organizationApi.postAuthOrganizationUpdatememberrole(
         variables.data
       );
@@ -250,7 +259,7 @@ export function usePostAuthOrganizationUpdatememberrole(
 
 export function useGetAuthOrganizationGetactivemember(
   queryOptions?: Omit<
-    UseQueryOptions<Record<string, any>, Error>,
+    UseQueryOptions<GetAuthOrganizationGetactivememberResponseType, Error>,
     'queryKey' | 'queryFn'
   >
 ) {
@@ -288,7 +297,7 @@ export function useGetAuthOrganizationListinvitations(
 export function usePostAuthOrganizationCreateteam(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthOrganizationCreateteamResponseType,
       Error,
       { data: Record<string, any> }
     >,
@@ -306,7 +315,10 @@ export function usePostAuthOrganizationCreateteam(
 }
 
 export function useGetAuthOrganizationListteams(
-  queryOptions?: Omit<UseQueryOptions<unknown, Error>, 'queryKey' | 'queryFn'>
+  queryOptions?: Omit<
+    UseQueryOptions<GetAuthOrganizationListteamsResponseItemType[], Error>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   return useQuery({
     queryKey: ['getAuthOrganizationListteams'],
@@ -338,7 +350,7 @@ export function usePostAuthOrganizationRemoveteam(
 export function usePostAuthOrganizationUpdateteam(
   mutationOptions?: Omit<
     UseMutationOptions<
-      Record<string, any>,
+      PostAuthOrganizationUpdateteamResponseType,
       Error,
       { data: Record<string, any> }
     >,

@@ -78,13 +78,15 @@ export function usePostAuthTwofactorVerifybackupcode(
     UseMutationOptions<
       Record<string, any>,
       Error,
-      { data: Record<string, any> }
+      { data: PostAuthTwofactorVerifybackupcodeRequestType }
     >,
     'mutationFn'
   >
 ) {
   return useMutation({
-    mutationFn: (variables: { data: Record<string, any> }) => {
+    mutationFn: (variables: {
+      data: PostAuthTwofactorVerifybackupcodeRequestType;
+    }) => {
       return apiSDK.twoFactorApi.postAuthTwofactorVerifybackupcode(
         variables.data
       );

@@ -206,31 +206,202 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
       return `${refName}Schema`;
     }
     
-    // Handle inline schemas based on type
+    // Convert inline schemas to Zod schemas
+    return this.convertInlineToZodSchema(schema);
+  }
+
+  private convertInlineToZodSchema(schema: any): string {
+    // Check for enum first
+    if (schema.enum) {
+      return this.handleInlineEnumSchema(schema);
+    }
+
     if (schema.type) {
       switch (schema.type) {
         case 'string':
-          return 'z.string()';
+          return this.handleInlineStringSchema(schema);
         case 'number':
         case 'integer':
-          return 'z.number()';
+          return this.handleInlineNumberSchema(schema);
         case 'boolean':
           return 'z.boolean()';
         case 'array':
-          if (schema.items) {
-            const itemSchema = this.getSchemaReference(schema.items);
-            return `z.array(${itemSchema})`;
-          }
-          return 'z.array(z.unknown())';
+          return this.handleInlineArraySchema(schema);
         case 'object':
-          // For complex objects without $ref, fallback to unknown
-          return 'z.unknown()';
+          return this.handleInlineObjectSchema(schema);
+        case 'date':
+          // Handle invalid OpenAPI type "date" as string with date format
+          return 'z.string()';
         default:
           return 'z.unknown()';
       }
     }
+
+    // Handle composition schemas
+    if (schema.oneOf) {
+      return this.handleInlineOneOfSchema(schema);
+    }
+    if (schema.anyOf) {
+      return this.handleInlineAnyOfSchema(schema);
+    }
+    if (schema.allOf) {
+      return this.handleInlineAllOfSchema(schema);
+    }
     
     return 'z.unknown()';
+  }
+
+  private handleInlineStringSchema(schema: any): string {
+    let zodString = 'z.string()';
+
+    if (schema.format) {
+      switch (schema.format) {
+        case 'email':
+          zodString += '.email()';
+          break;
+        case 'uri':
+        case 'url':
+          zodString += '.url()';
+          break;
+        case 'uuid':
+          zodString += '.uuid()';
+          break;
+        case 'date':
+        case 'date-time':
+          zodString += '.datetime()';
+          break;
+      }
+    }
+
+    if (schema.minLength !== undefined) {
+      zodString += `.min(${schema.minLength})`;
+    }
+    if (schema.maxLength !== undefined) {
+      zodString += `.max(${schema.maxLength})`;
+    }
+    if (schema.pattern) {
+      zodString += `.regex(/${schema.pattern}/)`;
+    }
+
+    return zodString;
+  }
+
+  private handleInlineNumberSchema(schema: any): string {
+    const isInteger = schema.type === 'integer';
+    let zodNumber = isInteger ? 'z.number().int()' : 'z.number()';
+
+    if (schema.minimum !== undefined) {
+      zodNumber += `.min(${schema.minimum})`;
+    }
+    if (schema.maximum !== undefined) {
+      zodNumber += `.max(${schema.maximum})`;
+    }
+
+    return zodNumber;
+  }
+
+  private handleInlineArraySchema(schema: any): string {
+    if (!schema.items) {
+      return 'z.array(z.unknown())';
+    }
+
+    const itemSchema = this.getSchemaReference(schema.items);
+    let zodArray = `z.array(${itemSchema})`;
+
+    if (schema.minItems !== undefined) {
+      zodArray += `.min(${schema.minItems})`;
+    }
+    if (schema.maxItems !== undefined) {
+      zodArray += `.max(${schema.maxItems})`;
+    }
+
+    return zodArray;
+  }
+
+  private handleInlineObjectSchema(schema: any): string {
+    if (!schema.properties) {
+      if (schema.additionalProperties) {
+        const additionalSchema = typeof schema.additionalProperties === 'object' 
+          ? this.getSchemaReference(schema.additionalProperties)
+          : 'z.unknown()';
+        return `z.record(${additionalSchema})`;
+      }
+      return 'z.object({})';
+    }
+
+    const properties: string[] = [];
+    const required = schema.required || [];
+
+    Object.entries(schema.properties).forEach(([propName, propSchema]) => {
+      const isRequired = required.includes(propName);
+      const zodPropSchema = this.getSchemaReference(propSchema);
+      
+      const finalSchema = isRequired ? zodPropSchema : `${zodPropSchema}.optional()`;
+      properties.push(`  ${propName}: ${finalSchema}`);
+    });
+
+    let objectSchema = `z.object({\n${properties.join(',\n')}\n})`;
+
+    if (schema.additionalProperties === false) {
+      objectSchema += '.strict()';
+    }
+
+    return objectSchema;
+  }
+
+  private handleInlineEnumSchema(schema: any): string {
+    if (!schema.enum || schema.enum.length === 0) {
+      return 'z.unknown()';
+    }
+
+    const enumValues = schema.enum.map((value: any) => {
+      if (typeof value === 'string') {
+        return `"${value}"`;
+      }
+      return String(value);
+    }).join(', ');
+
+    return `z.enum([${enumValues}])`;
+  }
+
+  private handleInlineOneOfSchema(schema: any): string {
+    if (!schema.oneOf || schema.oneOf.length === 0) {
+      return 'z.unknown()';
+    }
+
+    const unionSchemas = schema.oneOf.map((subSchema: any) => 
+      this.getSchemaReference(subSchema)
+    );
+
+    return `z.union([${unionSchemas.join(', ')}])`;
+  }
+
+  private handleInlineAnyOfSchema(schema: any): string {
+    if (!schema.anyOf || schema.anyOf.length === 0) {
+      return 'z.unknown()';
+    }
+
+    const unionSchemas = schema.anyOf.map((subSchema: any) => 
+      this.getSchemaReference(subSchema)
+    );
+
+    return `z.union([${unionSchemas.join(', ')}])`;
+  }
+
+  private handleInlineAllOfSchema(schema: any): string {
+    if (!schema.allOf || schema.allOf.length === 0) {
+      return 'z.unknown()';
+    }
+
+    const intersectionSchemas = schema.allOf.map((subSchema: any) => 
+      this.getSchemaReference(subSchema)
+    );
+
+    if (intersectionSchemas.length === 1) {
+      return intersectionSchemas[0];
+    }
+
+    return intersectionSchemas.reduce((acc: string, curr: string) => `${acc}.and(${curr})`);
   }
 
   private inferReturnType(responseSchema: string): string {
@@ -238,49 +409,105 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
       return 'Promise<unknown>';
     }
     
-    // Handle built-in Zod schemas - convert to TypeScript types
-    if (responseSchema.startsWith('z.')) {
-      if (responseSchema === 'z.string()') return 'Promise<string>';
-      if (responseSchema === 'z.number()') return 'Promise<number>';
-      if (responseSchema === 'z.boolean()') return 'Promise<boolean>';
-      if (responseSchema.startsWith('z.array(')) {
-        // Extract inner type from z.array(innerType)
-        const innerMatch = responseSchema.match(/z\.array\((.+)\)/);
-        if (innerMatch) {
-          const innerSchema = innerMatch[1];
-          const innerType = this.inferReturnType(innerSchema).replace('Promise<', '').replace('>', '');
-          return `Promise<${innerType}[]>`;
-        }
-      }
-      return 'Promise<unknown>';
+    // Handle schemas that reference models
+    if (!responseSchema.startsWith('z.')) {
+      const typeName = responseSchema.replace('Schema', '');
+      return `Promise<${typeName}>`;
     }
     
-    const typeName = responseSchema.replace('Schema', '');
-    return `Promise<${typeName}>`;
+    // For inline Zod schemas, convert to TypeScript type
+    const tsType = this.zodSchemaToTsType(responseSchema);
+    return `Promise<${tsType}>`;
+  }
+  
+  private zodSchemaToTsType(zodSchema: string): string {
+    // Basic type mappings
+    if (zodSchema === 'z.string()' || zodSchema.startsWith('z.string().')) return 'string';
+    if (zodSchema === 'z.number()' || zodSchema.startsWith('z.number().')) return 'number';
+    if (zodSchema === 'z.boolean()' || zodSchema.startsWith('z.boolean()')) return 'boolean';
+    if (zodSchema === 'z.unknown()') return 'unknown';
+    if (zodSchema === 'z.any()') return 'any';
+    if (zodSchema === 'z.null()') return 'null';
+    if (zodSchema === 'z.undefined()') return 'undefined';
+    if (zodSchema === 'z.void()') return 'void';
+    
+    // Array types
+    if (zodSchema.startsWith('z.array(')) {
+      const innerMatch = zodSchema.match(/z\.array\((.+)\)(?:\.|$)/);
+      if (innerMatch) {
+        const innerType = this.zodSchemaToTsType(innerMatch[1]);
+        return `${innerType}[]`;
+      }
+    }
+    
+    // Record types
+    if (zodSchema.startsWith('z.record(')) {
+      const innerMatch = zodSchema.match(/z\.record\((.+)\)/);
+      if (innerMatch) {
+        const valueType = this.zodSchemaToTsType(innerMatch[1]);
+        return `Record<string, ${valueType}>`;
+      }
+    }
+    
+    // Enum types
+    if (zodSchema.startsWith('z.enum(')) {
+      const enumMatch = zodSchema.match(/z\.enum\(\[(.+)\]\)/);
+      if (enumMatch) {
+        return enumMatch[1].replace(/"/g, "'");
+      }
+    }
+    
+    // Union types
+    if (zodSchema.startsWith('z.union(')) {
+      const unionMatch = zodSchema.match(/z\.union\(\[(.+)\]\)/);
+      if (unionMatch) {
+        const types = this.parseUnionTypes(unionMatch[1]);
+        return types.map(t => this.zodSchemaToTsType(t)).join(' | ');
+      }
+    }
+    
+    // Object types - for inline objects, we'll use a generic type
+    if (zodSchema.startsWith('z.object(')) {
+      // For complex inline objects, we'll use Record type as a simplification
+      // In a real implementation, you might want to parse the object structure
+      return 'Record<string, any>';
+    }
+    
+    // Default fallback
+    return 'unknown';
+  }
+  
+  private parseUnionTypes(unionContent: string): string[] {
+    // Simple parser for union types - handles basic cases
+    const types: string[] = [];
+    let current = '';
+    let depth = 0;
+    
+    for (const char of unionContent) {
+      if (char === '(' || char === '[' || char === '{') depth++;
+      if (char === ')' || char === ']' || char === '}') depth--;
+      if (char === ',' && depth === 0) {
+        types.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    
+    if (current.trim()) {
+      types.push(current.trim());
+    }
+    
+    return types;
   }
 
   private inferTypeFromSchema(schema: string): string {
-    if (schema === 'z.unknown()') {
-      return 'unknown';
+    if (!schema.startsWith('z.')) {
+      return schema.replace('Schema', '');
     }
     
-    // Handle built-in Zod schemas
-    if (schema.startsWith('z.')) {
-      if (schema === 'z.string()') return 'string';
-      if (schema === 'z.number()') return 'number';
-      if (schema === 'z.boolean()') return 'boolean';
-      if (schema.startsWith('z.array(')) {
-        const innerMatch = schema.match(/z\.array\((.+)\)/);
-        if (innerMatch) {
-          const innerSchema = innerMatch[1];
-          const innerType = this.inferTypeFromSchema(innerSchema);
-          return `${innerType}[]`;
-        }
-      }
-      return 'unknown';
-    }
-    
-    return schema.replace('Schema', '');
+    // Use the same logic as inferReturnType but without the Promise wrapper
+    return this.zodSchemaToTsType(schema);
   }
 
   private generateMethodCode(method: GeneratedMethod): string {

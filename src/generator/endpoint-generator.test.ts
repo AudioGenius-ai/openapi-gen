@@ -378,7 +378,7 @@ describe('EndpointGenerator', () => {
       expect(result.content).not.toContain('bodySchema:')
     })
 
-    it('should handle inline schemas returning z.unknown()', () => {
+    it('should handle inline object schemas properly', () => {
       const operation: ParsedOperation = {
         method: 'GET',
         path: '/users',
@@ -398,11 +398,12 @@ describe('EndpointGenerator', () => {
       }
 
       const result = generator.generateEndpointClasses([operation], 'default')
-      // This tests the inline schema case (line 192)
-      expect(result.content).toContain('z.unknown()')
+      // This tests that inline object schemas are properly converted
+      expect(result.content).toContain('z.object({')
+      expect(result.content).toContain('id: z.string().optional()')
     })
 
-    it('should handle type inference for unknown schemas', () => {
+    it('should handle type inference for inline object schemas', () => {
       const operation: ParsedOperation = {
         method: 'POST',
         path: '/users',
@@ -421,8 +422,8 @@ describe('EndpointGenerator', () => {
       }
 
       const result = generator.generateEndpointClasses([operation], 'default')
-      // This tests inferTypeFromSchema for unknown type (lines 206-207)
-      expect(result.content).toContain('data: unknown')
+      // This tests inferTypeFromSchema for inline object type
+      expect(result.content).toContain('data: Record<string, any>')
     })
   })
 })

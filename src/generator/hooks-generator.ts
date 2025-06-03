@@ -252,23 +252,47 @@ ${hookContents}
       'import { ApiSDK } from "../ApiSDK";',
     ];
 
-    // Collect all types used in hooks (excluding primitive types)
+    // Collect all types used in hooks (excluding primitive types and built-in TypeScript types)
     const types = new Set<string>();
     hooks.forEach((hook) => {
       // Extract return types from both query and mutation hooks
-      const regex = /(UseQueryOptions|UseMutationOptions)<([^,>]+)/g;
+      // Improved regex to handle generic types properly
+      const regex = /(UseQueryOptions|UseMutationOptions)<\s*([^,]+?)(?:,\s*Error|\s*>)/g;
       let match: RegExpExecArray | null;
       while ((match = regex.exec(hook.content)) !== null) {
         let type = match[2].trim();
 
+        // Handle array types
         if (type.endsWith('[]')) {
-          // Include the element type for array return types
-          type = type.slice(0, -2);
+          type = type.slice(0, -2).trim();
         }
+
+        // Skip if it's a primitive, built-in type, or complex generic type
+        const builtInTypes = [
+          'unknown', 'string', 'number', 'boolean', 'void', 'Error', 'any',
+          'null', 'undefined', 'never', 'object'
+        ];
+        
+        const isBuiltInGeneric = type.startsWith('Record<') || 
+                                type.startsWith('Partial<') || 
+                                type.startsWith('Required<') ||
+                                type.startsWith('Readonly<') ||
+                                type.startsWith('Pick<') ||
+                                type.startsWith('Omit<') ||
+                                type.startsWith('Exclude<') ||
+                                type.startsWith('Extract<') ||
+                                type.startsWith('NonNullable<') ||
+                                type.startsWith('Parameters<') ||
+                                type.startsWith('ReturnType<') ||
+                                type.startsWith('Promise<') ||
+                                type.includes('<') || // Any other generic type
+                                type.includes('|') || // Union types
+                                type.includes('&');   // Intersection types
 
         if (
           type &&
-          !['unknown', 'string', 'number', 'boolean', 'void', 'Error', 'any'].includes(type) &&
+          !builtInTypes.includes(type) &&
+          !isBuiltInGeneric &&
           !type.startsWith('z.')
         ) {
           types.add(type);

@@ -50,6 +50,12 @@ export type ${name} = z.infer<typeof ${name}Schema>;
       return this.handleEnumSchema(schema);
     }
 
+    // Handle special case for invalid "date" type first
+    if ((schema as any).type === 'date') {
+      // Handle invalid OpenAPI type "date" as string with date format
+      return 'z.string()';
+    }
+
     switch (schema.type) {
       case 'string':
         return this.handleStringSchema(schema);

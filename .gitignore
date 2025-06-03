@@ -6,5 +6,6 @@ dist/
 coverage/
 .nyc_output/
 generated/
+src/api/
 *.tsbuildinfo
 .history/

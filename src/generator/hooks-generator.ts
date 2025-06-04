@@ -36,7 +36,7 @@ export class HooksGenerator {
 
     const content = `${imports}
 
-const apiSDK = new ApiSDK(${baseUrlArg});
+const apiSDK = new ApiSDK({ baseUrl: ${baseUrlArg} });
 
 ${hookContents}
 `;
@@ -83,10 +83,26 @@ ${hookContents}
     }
 
     const method = operation.method.toLowerCase();
+    
+    // Include both static path parts and parameter indicators for uniqueness
     const pathParts = operation.path
       .split("/")
-      .filter((part) => part && !part.startsWith("{") && !part.startsWith(":"))
-      .map((part) => this.toPascalCase(part.replace(/[^a-zA-Z0-9]/g, "")));
+      .filter((part) => part)
+      .map((part) => {
+        if (part.startsWith("{") && part.endsWith("}")) {
+          // Convert {id} to "ById", {slug} to "BySlug", etc.
+          const paramName = part.slice(1, -1);
+          return "By" + this.toPascalCase(paramName);
+        } else if (part.startsWith(":")) {
+          // Convert :id to "ById", :slug to "BySlug", etc.
+          const paramName = part.slice(1);
+          return "By" + this.toPascalCase(paramName);
+        } else {
+          // Clean up static path parts
+          return this.toPascalCase(part.replace(/[^a-zA-Z0-9]/g, ""));
+        }
+      })
+      .filter(part => part); // Remove empty parts
 
     return prefix + this.toPascalCase(method) + pathParts.join("");
   }
@@ -98,7 +114,7 @@ ${hookContents}
   ): string {
     const hookName = this.generateHookName(operation, true);
     const methodName = method.name;
-    const baseName = className.replace("Api", "");
+    const baseName = className.endsWith("Api") ? className.slice(0, -3) : className;
     const apiInstance = "apiSDK." + this.toCamelCase(baseName) + "Api";
 
     // Separate required and optional parameters
@@ -185,7 +201,7 @@ ${hookContents}
   ): string {
     const hookName = this.generateHookName(operation, false);
     const methodName = method.name;
-    const baseName = className.replace("Api", "");
+    const baseName = className.endsWith("Api") ? className.slice(0, -3) : className;
     const apiInstance = "apiSDK." + this.toCamelCase(baseName) + "Api";
 
     // For mutations, we typically pass all parameters as a single object
@@ -255,50 +271,63 @@ ${hookContents}
     // Collect all types used in hooks (excluding primitive types and built-in TypeScript types)
     const types = new Set<string>();
     hooks.forEach((hook) => {
-      // Extract return types from both query and mutation hooks
-      // Improved regex to handle generic types properly
-      const regex = /(UseQueryOptions|UseMutationOptions)<\s*([^,]+?)(?:,\s*Error|\s*>)/g;
-      let match: RegExpExecArray | null;
-      while ((match = regex.exec(hook.content)) !== null) {
-        let type = match[2].trim();
+      // Extract all type references from hook content
+      // Look for custom types in function signatures, generics, and bodies
+      const typePatterns = [
+        // UseQueryOptions and UseMutationOptions generics
+        /(UseQueryOptions|UseMutationOptions)<\s*([^,]+?)(?:,\s*Error|\s*>)/g,
+        // Function parameter types like "data: SomeType"
+        /data:\s*([A-Z][A-Za-z0-9]*(?:Type|Schema|Request|Response)?)/g,
+        // Variable types in destructuring
+        /:\s*{\s*data:\s*([A-Z][A-Za-z0-9]*(?:Type|Schema|Request|Response)?)\s*}/g,
+        // Direct type references
+        /([A-Z][A-Za-z0-9]*(?:RequestType|ResponseType|Type))\b/g
+      ];
 
-        // Handle array types
-        if (type.endsWith('[]')) {
-          type = type.slice(0, -2).trim();
+      typePatterns.forEach(pattern => {
+        let match: RegExpExecArray | null;
+        while ((match = pattern.exec(hook.content)) !== null) {
+          let type = match[match.length - 1].trim(); // Get the last capture group
+
+          // Handle array types
+          if (type.endsWith('[]')) {
+            type = type.slice(0, -2).trim();
+          }
+
+          // Skip if it's a primitive, built-in type, or complex generic type
+          const builtInTypes = [
+            'unknown', 'string', 'number', 'boolean', 'void', 'Error', 'any',
+            'null', 'undefined', 'never', 'object', 'UseQueryOptions', 'UseMutationOptions'
+          ];
+          
+          const isBuiltInGeneric = type.startsWith('Record<') || 
+                                  type.startsWith('Partial<') || 
+                                  type.startsWith('Required<') ||
+                                  type.startsWith('Readonly<') ||
+                                  type.startsWith('Pick<') ||
+                                  type.startsWith('Omit<') ||
+                                  type.startsWith('Exclude<') ||
+                                  type.startsWith('Extract<') ||
+                                  type.startsWith('NonNullable<') ||
+                                  type.startsWith('Parameters<') ||
+                                  type.startsWith('ReturnType<') ||
+                                  type.startsWith('Promise<') ||
+                                  type.includes('|') || // Union types
+                                  type.includes('&');   // Intersection types
+
+          if (
+            type &&
+            type.length > 2 &&
+            !builtInTypes.includes(type) &&
+            !isBuiltInGeneric &&
+            !type.startsWith('z.') &&
+            // Only include types that look like our generated types
+            /^[A-Z][A-Za-z0-9]*(?:Type|Schema|Request|Response)$/.test(type)
+          ) {
+            types.add(type);
+          }
         }
-
-        // Skip if it's a primitive, built-in type, or complex generic type
-        const builtInTypes = [
-          'unknown', 'string', 'number', 'boolean', 'void', 'Error', 'any',
-          'null', 'undefined', 'never', 'object'
-        ];
-        
-        const isBuiltInGeneric = type.startsWith('Record<') || 
-                                type.startsWith('Partial<') || 
-                                type.startsWith('Required<') ||
-                                type.startsWith('Readonly<') ||
-                                type.startsWith('Pick<') ||
-                                type.startsWith('Omit<') ||
-                                type.startsWith('Exclude<') ||
-                                type.startsWith('Extract<') ||
-                                type.startsWith('NonNullable<') ||
-                                type.startsWith('Parameters<') ||
-                                type.startsWith('ReturnType<') ||
-                                type.startsWith('Promise<') ||
-                                type.includes('<') || // Any other generic type
-                                type.includes('|') || // Union types
-                                type.includes('&');   // Intersection types
-
-        if (
-          type &&
-          !builtInTypes.includes(type) &&
-          !isBuiltInGeneric &&
-          !type.startsWith('z.') &&
-          !type.endsWith('Type') // Don't import inline types from models
-        ) {
-          types.add(type);
-        }
-      }
+      });
     });
 
     if (types.size > 0) {

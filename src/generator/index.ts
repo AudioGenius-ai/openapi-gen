@@ -141,7 +141,9 @@ export class CodeGenerator {
     outputDir: string,
   ): Promise<void> {
     const endpointsDir = path.join(outputDir, "endpoints");
+    const modelsDir = path.join(outputDir, "models");
     const generatedClasses: string[] = [];
+    const allInlineModels: any[] = [];
 
     for (const tag of tags) {
       const endpoint = this.endpointGenerator.generateEndpointClasses(
@@ -152,6 +154,14 @@ export class CodeGenerator {
       const formattedContent = await this.formatCode(endpoint.content);
       await fs.writeFile(filePath, formattedContent);
       generatedClasses.push(endpoint.className);
+
+      // Generate inline model files
+      for (const model of endpoint.inlineModels) {
+        const modelFilePath = path.join(modelsDir, `${model.name}.ts`);
+        const formattedModelContent = await this.formatCode(model.content);
+        await fs.writeFile(modelFilePath, formattedModelContent);
+        allInlineModels.push(model);
+      }
     }
 
     // Generate endpoints index file
@@ -159,6 +169,119 @@ export class CodeGenerator {
       this.endpointGenerator.generateIndexFile(generatedClasses);
     const formattedIndex = await this.formatCode(indexContent);
     await fs.writeFile(path.join(endpointsDir, "index.ts"), formattedIndex);
+
+    // Update models index to include inline models
+    if (allInlineModels.length > 0) {
+      await this.updateModelsIndex(modelsDir, allInlineModels);
+    }
+
+    // Post-process model files to fix missing schema imports
+    await this.fixModelImports(modelsDir);
+  }
+
+  private async updateModelsIndex(modelsDir: string, inlineModels: any[]): Promise<void> {
+    const indexPath = path.join(modelsDir, "index.ts");
+    let indexContent = "";
+    
+    try {
+      indexContent = await fs.readFile(indexPath, "utf-8");
+    } catch (error) {
+      // File doesn't exist yet, start with empty content
+    }
+
+    // Add exports for inline models
+    const inlineModelExports = inlineModels.map(model => `export * from "./${model.name}";`);
+    const newExports = inlineModelExports.join("\n");
+    
+    if (indexContent) {
+      indexContent += "\n" + newExports + "\n";
+    } else {
+      indexContent = newExports + "\n";
+    }
+
+    const formattedIndex = await this.formatCode(indexContent);
+    await fs.writeFile(indexPath, formattedIndex);
+  }
+
+  private async fixModelImports(modelsDir: string): Promise<void> {
+    // Get all model files
+    const files = await fs.readdir(modelsDir);
+    const modelFiles = files.filter(file => file.endsWith('.ts') && file !== 'index.ts');
+    
+    // Create a map of all available schemas
+    const availableSchemas = new Set<string>();
+    for (const file of modelFiles) {
+      const fileName = file.replace('.ts', '');
+      availableSchemas.add(`${fileName}Schema`);
+    }
+
+    // Process each model file
+    for (const file of modelFiles) {
+      const filePath = path.join(modelsDir, file);
+      let content = await fs.readFile(filePath, 'utf-8');
+      
+      // Find schema references that are not imported
+      const schemaReferences = new Set<string>();
+      const schemaPattern = /([A-Z][A-Za-z0-9]*Schema)\b/g;
+      let match;
+      
+      while ((match = schemaPattern.exec(content)) !== null) {
+        const schemaName = match[1];
+        if (availableSchemas.has(schemaName)) {
+          const typeName = schemaName.replace('Schema', '');
+          // Don't import self-references
+          if (typeName !== file.replace('.ts', '')) {
+            schemaReferences.add(typeName);
+          }
+        }
+      }
+
+      // Add missing imports
+      if (schemaReferences.size > 0) {
+        const existingImports = content.match(/import\s+{[^}]+}\s+from\s+['"][^'"]+['"];/g) || [];
+        const existingImportedTypes = new Set<string>();
+        
+        existingImports.forEach(importStatement => {
+          const matches = importStatement.match(/{\s*([^}]+)\s*}/);
+          if (matches) {
+            const imports = matches[1].split(',').map(imp => imp.trim());
+            imports.forEach(imp => existingImportedTypes.add(imp));
+          }
+        });
+
+        const missingImports: string[] = [];
+        schemaReferences.forEach(typeName => {
+          const schemaName = `${typeName}Schema`;
+          if (!existingImportedTypes.has(schemaName)) {
+            missingImports.push(`import { ${schemaName} } from './${typeName}';`);
+          }
+        });
+
+        if (missingImports.length > 0) {
+          // Find the last import statement
+          const importLines = content.split('\n');
+          let lastImportIndex = -1;
+          
+          for (let i = 0; i < importLines.length; i++) {
+            if (importLines[i].trim().startsWith('import ')) {
+              lastImportIndex = i;
+            }
+          }
+
+          // Insert new imports after the last existing import
+          if (lastImportIndex >= 0) {
+            importLines.splice(lastImportIndex + 1, 0, ...missingImports);
+            content = importLines.join('\n');
+          } else {
+            // No existing imports, add at the beginning
+            content = missingImports.join('\n') + '\n' + content;
+          }
+
+          const formattedContent = await this.formatCode(content);
+          await fs.writeFile(filePath, formattedContent);
+        }
+      }
+    }
   }
 
   private async generateSdk(tags: string[], outputDir: string): Promise<void> {

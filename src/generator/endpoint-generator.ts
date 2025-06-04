@@ -5,11 +5,12 @@ export interface GeneratedEndpoint {
   className: string;
   content: string;
   operations: ParsedOperation[];
+  inlineModels: InlineModel[];
 }
 
-export interface InlineType {
+export interface InlineModel {
   name: string;
-  definition: string;
+  content: string;
 }
 
 export interface MethodParameter {
@@ -30,13 +31,13 @@ export interface GeneratedMethod {
 }
 
 export class EndpointGenerator {
-  private inlineTypes: Map<string, InlineType> = new Map();
+  private inlineModels: Map<string, InlineModel> = new Map();
   private inlineTypeCounter = 0;
 
   constructor(private parser: OpenAPIParser) {}
 
   generateEndpointClasses(operations: ParsedOperation[], tag: string): GeneratedEndpoint {
-    this.inlineTypes.clear(); // Clear inline types for each class
+    this.inlineModels.clear(); // Clear inline models for each class
     
     const className = this.parser.generateClassName(tag);
     const tagOperations = operations.filter(op => {
@@ -49,14 +50,7 @@ export class EndpointGenerator {
     const methods = tagOperations.map(operation => this.generateMethod(operation));
     const imports = this.generateImports(methods);
     
-    // Generate inline type definitions
-    const inlineTypeDefinitions = Array.from(this.inlineTypes.values())
-      .map(type => type.definition)
-      .join('\n\n');
-    
     const content = `${imports}
-
-${inlineTypeDefinitions}
 
 export class ${className} extends ApiClient {
 ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
@@ -67,6 +61,7 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
       className,
       content,
       operations: tagOperations,
+      inlineModels: Array.from(this.inlineModels.values()),
     };
   }
 
@@ -94,10 +89,24 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
 
     // Generate from method and path
     const method = operation.method.toLowerCase();
-    const pathParts = operation.path
-      .split('/')
-      .filter(part => part && !part.startsWith('{') && !part.startsWith(':'))
-      .map(part => this.toPascalCase(part.replace(/[^a-zA-Z0-9]/g, '')));
+    const pathParts: string[] = [];
+    
+    operation.path.split('/').forEach(part => {
+      if (!part) return;
+      
+      if (part.startsWith('{') && part.endsWith('}')) {
+        // Path parameter - add identifier
+        const paramName = part.slice(1, -1);
+        pathParts.push('By' + this.toPascalCase(paramName));
+      } else if (part.startsWith(':')) {
+        // Path parameter in :param format  
+        const paramName = part.slice(1);
+        pathParts.push('By' + this.toPascalCase(paramName));
+      } else {
+        // Regular path segment
+        pathParts.push(this.toPascalCase(part.replace(/[^a-zA-Z0-9]/g, '')));
+      }
+    });
 
     return method + pathParts.join('');
   }
@@ -379,7 +388,7 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
     const typeName = `${context}Type`;
     
     // Check if we already generated this type
-    if (this.inlineTypes.has(typeName)) {
+    if (this.inlineModels.has(typeName)) {
       return `${typeName}Schema`;
     }
 
@@ -407,20 +416,50 @@ ${methods.map(method => this.generateMethodCode(method)).join('\n\n')}
       objectSchema += '.strict()';
     }
 
-    // Generate TypeScript interface
-    const interfaceDefinition = `export interface ${typeName} {
-${tsProperties.join('\n')}
-}
+    // Generate model file content
+    const dependencies = this.extractDependenciesFromProperties(schema.properties, context);
+    const imports = this.generateModelImports(dependencies);
+    
+    const modelContent = `${imports}
 
-export const ${typeName}Schema = ${objectSchema};`;
+export const ${typeName}Schema = ${objectSchema};
 
-    // Store the inline type
-    this.inlineTypes.set(typeName, {
+export type ${typeName} = z.infer<typeof ${typeName}Schema>;
+`;
+
+    // Store the inline model
+    this.inlineModels.set(typeName, {
       name: typeName,
-      definition: interfaceDefinition
+      content: modelContent
     });
 
     return `${typeName}Schema`;
+  }
+
+  private extractDependenciesFromProperties(properties: any, context: string): string[] {
+    const dependencies: string[] = [];
+    
+    Object.entries(properties).forEach(([propName, propSchema]) => {
+      // Check if this property references other inline types
+      const propContext = `${context}${this.toPascalCase(propName)}`;
+      if (this.inlineModels.has(`${propContext}Type`)) {
+        dependencies.push(`${propContext}Type`);
+      }
+    });
+    
+    return dependencies;
+  }
+
+  private generateModelImports(dependencies: string[]): string {
+    const imports = ['import { z } from "zod";'];
+    
+    if (dependencies.length > 0) {
+      dependencies.forEach(dep => {
+        imports.push(`import { ${dep}Schema } from "./${dep}";`);
+      });
+    }
+
+    return imports.join('\n');
   }
 
   private handleInlineEnumSchema(schema: any): string {
@@ -428,14 +467,34 @@ export const ${typeName}Schema = ${objectSchema};`;
       return 'z.unknown()';
     }
 
-    const enumValues = schema.enum.map((value: any) => {
-      if (typeof value === 'string') {
-        return `"${value}"`;
+    // Check if all enum values are strings (required for z.enum)
+    const allStrings = schema.enum.every((value: any) => typeof value === 'string');
+    
+    if (allStrings) {
+      const enumValues = schema.enum.map((value: string) => `"${value}"`).join(', ');
+      return `z.enum([${enumValues}])`;
+    } else {
+      // Handle mixed types or non-string enums using z.union with z.literal
+      const literalValues = schema.enum.map((value: any) => {
+        if (typeof value === 'string') {
+          return `z.literal("${value}")`;
+        } else if (typeof value === 'boolean') {
+          return `z.literal(${value})`;
+        } else if (typeof value === 'number') {
+          return `z.literal(${value})`;
+        } else if (value === null) {
+          return 'z.literal(null)';
+        } else {
+          return `z.literal(${JSON.stringify(value)})`;
+        }
+      }).join(', ');
+      
+      if (schema.enum.length === 1) {
+        return literalValues;
+      } else {
+        return `z.union([${literalValues}])`;
       }
-      return String(value);
-    }).join(', ');
-
-    return `z.enum([${enumValues}])`;
+    }
   }
 
   private handleInlineOneOfSchema(schema: any, context?: string): string {
@@ -499,7 +558,7 @@ export const ${typeName}Schema = ${objectSchema};`;
     if (zodSchema.endsWith('Schema')) {
       const typeName = zodSchema.replace('Schema', '');
       // Check if this is an inline type we generated
-      if (this.inlineTypes.has(typeName)) {
+      if (this.inlineModels.has(typeName)) {
         return typeName;
       }
       return typeName;
@@ -654,25 +713,27 @@ export const ${typeName}Schema = ${objectSchema};`;
     const schemas = new Set<string>();
 
     methods.forEach(method => {
+      // Add response schema imports
       if (method.responseSchema !== 'z.unknown()' && !method.responseSchema.startsWith('z.')) {
         const schemaName = method.responseSchema;
         const typeName = schemaName.replace('Schema', '');
-        // Only import from models if it's not an inline type
-        if (!this.inlineTypes.has(typeName)) {
-          schemas.add(schemaName);
-          schemas.add(typeName);
-        }
+        schemas.add(schemaName);
+        schemas.add(typeName);
       }
       
+      // Add request body schema imports
       if (method.requestBodySchema && !method.requestBodySchema.startsWith('z.')) {
         const schemaName = method.requestBodySchema;
         const typeName = schemaName.replace('Schema', '');
-        // Only import from models if it's not an inline type
-        if (!this.inlineTypes.has(typeName)) {
-          schemas.add(schemaName);
-          schemas.add(typeName);
-        }
+        schemas.add(schemaName);
+        schemas.add(typeName);
       }
+    });
+
+    // Add inline model imports
+    this.inlineModels.forEach((model) => {
+      schemas.add(`${model.name}Schema`);
+      schemas.add(model.name);
     });
 
     if (schemas.size > 0) {

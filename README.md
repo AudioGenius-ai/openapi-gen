@@ -106,6 +106,27 @@ openapi-gen init [options]
 
 - `-d, --dir <directory>` - Directory to initialize (default: ".")
 
+### Example Workflow
+
+```bash
+# Initialize with example configuration
+openapi-gen init
+
+# Generate the API client
+openapi-gen generate -i openapi.json -o src/api
+```
+
+### Development Scripts
+
+Run these commands during development:
+
+```bash
+pnpm build        # Compile TypeScript to dist/
+pnpm typecheck    # Run TypeScript type checking
+pnpm test:run     # Run tests once
+pnpm lint         # Lint the source files
+```
+
 ## Generated Code Structure
 
 The generator creates a well-organized structure:

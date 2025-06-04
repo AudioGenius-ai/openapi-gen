@@ -1,6 +1,6 @@
 {
   "name": "openapi-gen",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Custom OpenAPI Code Generator with Zod and React Query Hooks",
   "main": "dist/index.js",
   "bin": {

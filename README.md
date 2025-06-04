@@ -337,6 +337,11 @@ This generator supports OpenAPI 3.0+ specifications and handles:
 - ✅ Request body validation
 - ✅ Multiple response types
 
+## Examples
+
+See `examples/inline-schema-example.ts` for a standalone script demonstrating how
+to generate a method and React Query hook from an inline object schema.
+
 ## Contributing
 
 1. Fork the repository

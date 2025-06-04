@@ -1,6 +1,6 @@
-import { EndpointGenerator } from './src/generator/endpoint-generator';
-import { HooksGenerator } from './src/generator/hooks-generator';
-import { OpenAPIParser } from './src/utils/openapi-parser';
+import { EndpointGenerator } from '../src/generator/endpoint-generator';
+import { HooksGenerator } from '../src/generator/hooks-generator';
+import { OpenAPIParser } from '../src/utils/openapi-parser';
 
 // Test case showing the issue with inline object schemas
 const testOperation = {

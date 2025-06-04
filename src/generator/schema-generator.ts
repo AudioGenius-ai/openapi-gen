@@ -186,14 +186,34 @@ export type ${name} = z.infer<typeof ${name}Schema>;
       return 'z.unknown()';
     }
 
-    const enumValues = schema.enum.map(value => {
-      if (typeof value === 'string') {
-        return `"${value}"`;
+    // Check if all enum values are strings (required for z.enum)
+    const allStrings = schema.enum.every((value: any) => typeof value === 'string');
+    
+    if (allStrings) {
+      const enumValues = schema.enum.map((value: string) => `"${value}"`).join(', ');
+      return `z.enum([${enumValues}])`;
+    } else {
+      // Handle mixed types or non-string enums using z.union with z.literal
+      const literalValues = schema.enum.map((value: any) => {
+        if (typeof value === 'string') {
+          return `z.literal("${value}")`;
+        } else if (typeof value === 'boolean') {
+          return `z.literal(${value})`;
+        } else if (typeof value === 'number') {
+          return `z.literal(${value})`;
+        } else if (value === null) {
+          return 'z.literal(null)';
+        } else {
+          return `z.literal(${JSON.stringify(value)})`;
+        }
+      }).join(', ');
+      
+      if (schema.enum.length === 1) {
+        return literalValues;
+      } else {
+        return `z.union([${literalValues}])`;
       }
-      return String(value);
-    }).join(', ');
-
-    return `z.enum([${enumValues}])`;
+    }
   }
 
   private handleOneOfSchema(schema: OpenAPIV3.SchemaObject, dependencies: string[]): string {

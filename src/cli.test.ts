@@ -23,6 +23,7 @@ describe('CLI', () => {
     const mockGenerate = vi.fn(generateImpl)
     const mockPathExists = vi.fn()
     const mockEnsureDir = vi.fn()
+    const mockReadJSON = vi.fn()
 
     vi.doMock('./generator', () => ({
       CodeGenerator: vi.fn().mockImplementation(() => ({
@@ -32,13 +33,15 @@ describe('CLI', () => {
 
     vi.doMock('fs-extra', () => ({
       pathExists: mockPathExists,
-      ensureDir: mockEnsureDir
+      ensureDir: mockEnsureDir,
+      readJSON: mockReadJSON
     }))
 
     mockPathExists.mockResolvedValue(true)
     mockEnsureDir.mockResolvedValue(undefined)
+    mockReadJSON.mockResolvedValue({})
 
-    return { mockGenerate, mockPathExists, mockEnsureDir }
+    return { mockGenerate, mockPathExists, mockEnsureDir, mockReadJSON }
   }
 
   it('invokes CodeGenerator.generate with parsed options', async () => {
@@ -71,6 +74,46 @@ describe('CLI', () => {
       generateHooks: true
     })
     expect(mockPathExists).toHaveBeenCalledWith(path.resolve('openapi.json'))
+  })
+
+  it('loads config file and merges with CLI flags', async () => {
+    const { mockGenerate, mockReadJSON, mockPathExists } = mockDeps()
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {})
+
+    mockReadJSON.mockResolvedValue({
+      inputPath: 'spec.json',
+      outputDir: 'from-config',
+      apiClientName: 'CfgClient',
+      generateHooks: false
+    })
+
+    const outDir = 'cli-output'
+    process.argv = [
+      'node',
+      'cli',
+      'generate',
+      '--config',
+      'cfg.json',
+      '-o',
+      outDir,
+      '--base-url',
+      'https://from.cli'
+    ]
+
+    await import('./cli')
+
+    expect(exitSpy).not.toHaveBeenCalled()
+    expect(mockReadJSON).toHaveBeenCalledWith(path.resolve('cfg.json'))
+    expect(mockGenerate).toHaveBeenCalledWith({
+      inputPath: 'spec.json',
+      outputDir: path.resolve(outDir),
+      apiClientName: 'CfgClient',
+      baseUrl: 'https://from.cli',
+      generateHooks: false,
+      prettierConfig: undefined
+    })
+    expect(mockPathExists).toHaveBeenCalledWith(path.resolve('cfg.json'))
+    expect(mockPathExists).toHaveBeenCalledWith(path.resolve('spec.json'))
   })
 
   it('exits with error when no input provided', async () => {

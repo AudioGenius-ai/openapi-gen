@@ -18,46 +18,67 @@ program
   .description('Generate TypeScript code from OpenAPI specification')
   .option('-i, --input <path>', 'Path to OpenAPI specification file (JSON/YAML) or URL')
   .option('-o, --output <dir>', 'Output directory for generated code', './generated')
+  .option('-c, --config <file>', 'Path to JSON configuration file')
   .option('--no-hooks', 'Skip generating React Query hooks')
   .option('--base-url <url>', 'Base URL for API calls (used in generated hooks)')
   .option('--client-name <name>', 'Name for the generated API client class', 'ApiClient')
   .action(async (options) => {
     try {
-      if (!options.input) {
+      let fileConfig: any = {};
+      if (options.config) {
+        const configPath = path.resolve(options.config);
+        if (!await fs.pathExists(configPath)) {
+          console.error(`❌ Error: Config file not found: ${configPath}`);
+          process.exit(1);
+        }
+        fileConfig = await fs.readJSON(configPath);
+      }
+
+      const input = options.input || fileConfig.inputPath;
+      if (!input) {
         console.error('❌ Error: Input file or URL is required. Use -i or --input option.');
         process.exit(1);
       }
 
-      // Resolve paths
-      const inputPath = path.resolve(options.input);
-      const outputDir = path.resolve(options.output);
+      const resolvedInputPath = input.startsWith('http') ? input : path.resolve(input);
+      const cliOutputSpecified = process.argv.includes('-o') || process.argv.includes('--output');
+      const outputDir = path.resolve(cliOutputSpecified ? options.output : fileConfig.outputDir || './generated');
 
-      // Check if input file exists (if it's a local file)
-      if (!options.input.startsWith('http') && !await fs.pathExists(inputPath)) {
-        console.error(`❌ Error: Input file not found: ${inputPath}`);
+      if (!input.startsWith('http') && !await fs.pathExists(resolvedInputPath)) {
+        console.error(`❌ Error: Input file not found: ${resolvedInputPath}`);
         process.exit(1);
       }
 
-      // Create output directory if it doesn't exist
       await fs.ensureDir(outputDir);
 
+      const cliClientNameSpecified = process.argv.includes('--client-name');
+      const apiClientName = cliClientNameSpecified ? options.clientName : (fileConfig.apiClientName || options.clientName);
+
+      const cliBaseUrlSpecified = process.argv.includes('--base-url');
+      const baseUrl = cliBaseUrlSpecified ? options.baseUrl : (fileConfig.baseUrl || options.baseUrl);
+
+      const finalConfig = {
+        inputPath: input,
+        outputDir,
+        apiClientName,
+        baseUrl,
+        generateHooks: process.argv.includes('--no-hooks')
+          ? false
+          : (fileConfig.generateHooks !== undefined ? fileConfig.generateHooks : true),
+        prettierConfig: fileConfig.prettierConfig,
+      };
+
       console.log('🎯 Configuration:');
-      console.log(`   Input: ${options.input}`);
-      console.log(`   Output: ${outputDir}`);
-      console.log(`   Generate hooks: ${options.hooks !== false}`);
-      if (options.baseUrl) {
-        console.log(`   Base URL: ${options.baseUrl}`);
+      console.log(`   Input: ${finalConfig.inputPath}`);
+      console.log(`   Output: ${finalConfig.outputDir}`);
+      console.log(`   Generate hooks: ${finalConfig.generateHooks !== false}`);
+      if (finalConfig.baseUrl) {
+        console.log(`   Base URL: ${finalConfig.baseUrl}`);
       }
       console.log();
 
       const generator = new CodeGenerator();
-      await generator.generate({
-        inputPath: options.input,
-        outputDir,
-        apiClientName: options.clientName,
-        baseUrl: options.baseUrl,
-        generateHooks: options.hooks !== false,
-      });
+      await generator.generate(finalConfig);
 
       console.log();
       console.log('🎉 Generation completed successfully!');

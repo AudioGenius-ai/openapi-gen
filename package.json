@@ -26,7 +26,8 @@
     "format": "prettier --write src",
     "prepublishOnly": "pnpm run build && pnpm run test:run",
     "example": "openapi-gen generate -i openapi.json -o generated",
-    "example-dev": "openapi-gen generate -i openapi.json -o generated --base-url http://localhost:3000/api"
+    "example-dev": "openapi-gen generate -i openapi.json -o generated --base-url http://localhost:3000/api",
+    "release": "node scripts/release.js"
   },
   "keywords": [
     "openapi",

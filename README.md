@@ -345,6 +345,13 @@ This generator supports OpenAPI 3.0+ specifications and handles:
 4. Add tests if applicable
 5. Submit a pull request
 
+## Release Process
+
+1. Ensure all tests pass: `pnpm test:run`
+2. Run `pnpm release --increment=patch` (or `major`/`minor`).
+   This bumps the package version, pushes a git tag, and publishes to npm.
+3. Update `CHANGELOG.md` with notable changes.
+
 ## License
 
 MIT License - see LICENSE file for details.
